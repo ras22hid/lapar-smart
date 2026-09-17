@@ -1,0 +1,110 @@
+@startuml Component_LaparSmart
+' Component Diagram - Lapar Smart: QR Menu Ordering System
+' Based on the three-tier Architecture Diagram (Figure 3.14) --
+' Presentation / Application / Data -- expanded into the actual
+' components behind each layer (Flask blueprints, db.py access
+' layer, and the Turso/SQLite split from Section 4.2.3).
+' Laid out left to right so the three tiers read as one horizontal flow.
+
+left to right direction
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam roundcorner 4
+skinparam defaultFontName IBM Plex Sans
+skinparam nodesep 30
+skinparam ranksep 60
+
+skinparam component {
+  BackgroundColor #eaf2f8
+  BorderColor #1f5f8b
+  FontColor #17212e
+}
+skinparam database {
+  BackgroundColor #fff4e6
+  BorderColor #c4531c
+  FontColor #17212e
+}
+skinparam package {
+  BackgroundColor #f7f9fb
+  BorderColor #9db8c9
+  FontColor #17212e
+}
+skinparam node {
+  BackgroundColor #17212e
+  BorderColor #17212e
+  FontColor #ffffff
+}
+skinparam interface {
+  BackgroundColor #fff8ee
+  BorderColor #c4531c
+}
+skinparam ArrowColor #c4531c
+skinparam ArrowFontColor #17212e
+skinparam actorStyle awesome
+
+actor "FAMA\nStaff" as staff
+actor "Cafe\nAdmin" as admin
+
+package "Presentation Layer" {
+  component "Mobile Web Client\n(HTML5, CSS3, JS)\nJinja2: landing, menu,\norder_status" as webClient
+  component "Cafe Admin Dashboard\nJinja2: admin_login,\nadmin_menu, admin_orders,\nadmin_users" as adminDash
+}
+
+interface "HTTPS /\nJSON" as https
+
+node "Vercel Serverless Function (api/index.py)" as vercel {
+  package "Application Layer -- Python Flask" {
+    component "Staff Blueprint\n(routes_staff.py)\nOrder Processing\nNotification Service" as staffBp
+    component "QR Code\nGenerator\n(qr_data_uri)" as qrGen
+    component "Admin Blueprint\n(routes_admin.py)\nMenu Mgmt API\nSession / Role Handling" as adminBp
+    component "Database Access\nLayer\n(db.py -- get_db())" as dal
+    component "Jinja2 Template Engine\n(app/templates/*.html)" as jinja
+  }
+}
+
+package "Data Layer" {
+  database "Turso (libSQL)\n[production]" as turso
+  database "SQLite\n[local dev]" as sqlite
+}
+
+staff --> webClient
+admin --> adminDash
+
+webClient --> https
+adminDash --> https
+https --> staffBp
+https --> adminBp
+
+staffBp --> qrGen : uses
+staffBp --> dal : SQL query / result
+adminBp --> dal : SQL query / result
+
+dal --> turso : TURSO_DATABASE_URL set
+dal --> sqlite : fallback (env var unset)
+
+staffBp --> jinja : render_template()
+adminBp --> jinja : render_template()
+
+note top of dal
+  get_db() picks the backend at
+  runtime; every route calls
+  the same interface either way.
+end note
+
+note bottom of jinja
+  Fills each template's {% %} / {{ }}
+  tags with the route's query results;
+  the resulting HTML is what actually
+  reaches the Presentation Layer over
+  the HTTPS / JSON interface.
+end note
+
+note bottom of turso
+  Persistent, shared across every
+  Vercel instance -- fixes orders
+  written on one instance being
+  invisible to another (Sec. 4.2.3).
+end note
+
+@enduml

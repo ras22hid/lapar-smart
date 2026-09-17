@@ -1,0 +1,105 @@
+@startuml ClassDiagram_LaparSmart
+' Class Diagram - Lapar Smart: QR Menu Ordering System
+' Conceptual classes mapped from app/db.py SCHEMA + route behaviour
+' (the real implementation is procedural/Flask routes, not these
+' classes themselves - this models the logical entities and the
+' operations that act on them).
+
+skinparam shadowing false
+skinparam roundcorner 4
+skinparam defaultFontName IBM Plex Sans
+
+skinparam class {
+  AttributeFontColor #17212e
+  AttributeFontSize 12
+}
+skinparam ArrowColor #c4531c
+skinparam ArrowFontColor #17212e
+skinparam note {
+  BackgroundColor #fff8ee
+  BorderColor #e0b98a
+}
+
+class Staff {
+  +String staff_id
+  +String name
+  +String department
+  +bool active
+  --
+  +placeOrder()
+  +reserveMeetingRoomOrder()
+}
+
+class Admin {
+  +String admin_id
+  +String name
+  +String role
+  +bool active
+  +String email
+  --
+  +updateDailyMenu()
+  +updateOrderStatus()
+  +manageUsers()
+  +forgotPassword()
+}
+
+class MenuItem {
+  +int item_id
+  +String name
+  +float price
+  +String category
+  +Date available_date
+  +bool is_available
+}
+
+class CateringPackage {
+  +int package_id
+  +String name
+  +int pax
+  +float price
+  +String description
+  +bool is_available
+}
+
+class Order {
+  +int order_id
+  +String staff_id
+  +String order_type
+  +String status
+  +float total_amount
+  +DateTime order_date
+  +String meeting_room
+  +DateTime meeting_time
+  +String package_name
+  +int package_pax
+  +int package_qty
+  --
+  +computeTotal()
+  +updateStatus(newStatus)
+}
+
+class OrderItem {
+  +int order_item_id
+  +int order_id
+  +int item_id
+  +int quantity
+  +float subtotal
+}
+
+class Notification {
+  +int notification_id
+  +int order_id
+  +String message
+  +DateTime sent_time
+  +bool is_read
+}
+
+Staff  "1" --> "0..*" Order        : places
+Order  "1" --> "1..*" OrderItem    : contains
+MenuItem "1" --> "0..*" OrderItem  : "listed in"
+Order  "1" --> "0..*" Notification : generates
+Staff  "1" --> "1.." CateringPackage : "books"
+Admin  "1" --> "1..*" MenuItem        : manages
+Admin   "1" --> "1..*" Order           : "updates status"
+
+@enduml

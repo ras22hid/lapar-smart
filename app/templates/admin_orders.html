@@ -1,0 +1,74 @@
+{% extends "admin_base.html" %}
+{% block title %}Orders{% endblock %}
+{% block page_title %}<i class="fa-solid fa-receipt me-2 text-primary"></i>UC8 &middot; View Orders{% endblock %}
+{% block content %}
+{% set badge_class = {
+  "Pending": "bg-danger",
+  "Preparing": "bg-warning",
+  "Ready": "bg-success",
+  "Completed": "bg-secondary"
+} %}
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form method="get" class="row g-2 mb-3">
+      <div class="col-auto">
+        <select name="type" class="form-select form-select-sm" onchange="this.form.submit()">
+          {% for t in ["All", "Counter", "MeetingRoom"] %}
+          <option value="{{ t }}" {{ "selected" if type_filter == t }}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+          {% for s in ["All"] + status_flow %}
+          <option value="{{ s }}" {{ "selected" if status_filter == s }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </form>
+
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr><th>#</th><th>Staff</th><th>Type</th><th>Total</th><th>Status</th><th>Time</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for o in orders %}
+          <tr>
+            <td>#{{ o.order_id }}</td>
+            <td>{{ o.staff_name }} <span class="text-muted small">({{ o.staff_id }})</span></td>
+            <td>
+              {{ o.order_type }}
+              {% if o.order_type == "MeetingRoom" %}
+              <br><span class="text-muted small">{{ o.meeting_room }}</span>
+              <br><span class="text-muted small">{{ o.package_name }} &times;{{ o.package_qty }} ({{ o.package_pax }} pax)</span>
+              {% endif %}
+            </td>
+            <td>RM {{ "%.2f"|format(o.total_amount) }}</td>
+            <td><span class="badge {{ badge_class[o.status] }}">{{ o.status }}</span></td>
+            <td class="text-muted small">{{ o.order_date }}</td>
+            <td>
+              {% set idx = status_flow.index(o.status) %}
+              {% if idx + 1 < status_flow|length %}
+              <form method="post">
+                <input type="hidden" name="order_id" value="{{ o.order_id }}">
+                <input type="hidden" name="new_status" value="{{ status_flow[idx + 1] }}">
+                <button type="submit" class="btn btn-sm btn-primary">
+                  Mark {{ status_flow[idx + 1] }}{% if status_flow[idx + 1] == "Completed" %} (Paid){% endif %}
+                </button>
+              </form>
+              {% else %}
+              <span class="text-muted small">Done</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="text-muted text-center py-4">No orders found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<p class="text-muted small mt-3"><i class="fa-solid fa-circle-info me-1"></i>UC9 &middot; Update Order Status &nbsp;|&nbsp; UC6 &middot; "Mark Completed" represents payment collected at the counter.</p>
+{% endblock %}

@@ -1,0 +1,598 @@
+/* Lapar Smart — small overrides layered on top of the Davur template's own style.css */
+
+:root {
+  --lapar-brown-dark: #3b2a1e;
+  --lapar-brown: #5c4030;
+  --lapar-brown-light: #7a5a42;
+  --lapar-cream: #e8d4a9;
+  --lapar-cream-hover: #d9c08a;
+  --lapar-cream-text: #f7ecd9;
+  --lapar-muted-on-brown: rgba(247, 236, 217, 0.7);
+
+  /* The admin dashboard's Davur skin doesn't use Bootstrap's --bs-*
+     button variables at all -- it has its own older --primary /
+     --rgba-primary-N custom-property system (400+ references: sidebar
+     active states, badges, spinners, links...). Redefining it here
+     cascades cream through all of that in one shot. */
+  --primary: var(--lapar-cream);
+  --primary-hover: var(--lapar-cream-hover);
+  --secondary: var(--lapar-brown-dark);
+  --rgba-primary-1: rgba(232, 212, 169, 0.1);
+  --rgba-primary-2: rgba(232, 212, 169, 0.2);
+  --rgba-primary-3: rgba(232, 212, 169, 0.3);
+  --rgba-primary-4: rgba(232, 212, 169, 0.4);
+  --rgba-primary-5: rgba(232, 212, 169, 0.5);
+  --rgba-primary-6: rgba(232, 212, 169, 0.6);
+  --rgba-primary-7: rgba(232, 212, 169, 0.7);
+  --rgba-primary-8: rgba(232, 212, 169, 0.8);
+  --rgba-primary-9: rgba(232, 212, 169, 0.9);
+
+  /* Bootstrap's own --bs-primary(-rgb) is a separate system again (used
+     by utilities like .bg-primary/.border-primary via rgba(var(...))
+     baked-in !important rules) -- redefine it too so every "blue" utility
+     class flips to cream without having to fight each one individually. */
+  --bs-primary: var(--lapar-cream);
+  --bs-primary-rgb: 232, 212, 169;
+}
+
+body.lapar-body { background: #f4f6fa; }
+
+/* Davur's #main-wrapper starts at opacity:0 and only reaches opacity:1 once
+   custom.js adds a "show" class on load. Staff pages no longer load that
+   script at all (it existed only for the old nav toggle), so the page
+   would render completely blank without this override. Admin pages still
+   load it, but we force visibility here too rather than depend on
+   third-party JS timing for whether the page is visible at all. */
+#main-wrapper {
+  opacity: 1 !important;
+  overflow: visible !important;
+}
+
+/* =====================================================================
+   Theme recolor: white surfaces -> brown, blue accent -> cream.
+   Buttons have their own opaque fill, so a blanket swap is safe there.
+   Outline buttons and bare "text-primary" icons are transparent/inherit
+   whatever is behind them though -- on the light cream wallpaper cream
+   text would vanish, so those default to dark brown and only flip to
+   cream once nested inside a (now brown) .card.
+   ===================================================================== */
+.btn-primary {
+  --bs-btn-color: var(--lapar-brown-dark);
+  --bs-btn-bg: var(--lapar-cream);
+  --bs-btn-border-color: var(--lapar-cream);
+  --bs-btn-hover-color: var(--lapar-brown-dark);
+  --bs-btn-hover-bg: var(--lapar-cream-hover);
+  --bs-btn-hover-border-color: var(--lapar-cream-hover);
+  --bs-btn-active-color: var(--lapar-brown-dark);
+  --bs-btn-active-bg: var(--lapar-cream-hover);
+  --bs-btn-active-border-color: var(--lapar-cream-hover);
+  --bs-btn-disabled-color: var(--lapar-brown-dark);
+  --bs-btn-disabled-bg: var(--lapar-cream);
+  --bs-btn-disabled-border-color: var(--lapar-cream);
+  /* Admin dashboard skin has its own later, higher-specificity rules
+     (".btn.btn-primary" for background/border, ".btn.btn-success,
+     .btn.btn-primary,..." for a hardcoded white text color) that beat a
+     plain ".btn-primary" selector -- !important is needed to win here. */
+  color: var(--lapar-brown-dark) !important;
+  background-color: var(--lapar-cream) !important;
+  border-color: var(--lapar-cream) !important;
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+  color: var(--lapar-brown-dark) !important;
+  background-color: var(--lapar-cream-hover) !important;
+  border-color: var(--lapar-cream-hover) !important;
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--lapar-brown-dark);
+  --bs-btn-border-color: var(--lapar-brown-dark);
+  --bs-btn-hover-color: var(--lapar-brown-dark);
+  --bs-btn-hover-bg: var(--lapar-cream);
+  --bs-btn-hover-border-color: var(--lapar-cream);
+  --bs-btn-active-color: var(--lapar-brown-dark);
+  --bs-btn-active-bg: var(--lapar-cream);
+  --bs-btn-active-border-color: var(--lapar-cream);
+  color: var(--lapar-brown-dark) !important;
+  border-color: var(--lapar-brown-dark) !important;
+}
+.btn-outline-primary:hover {
+  color: var(--lapar-brown-dark) !important;
+  background-color: var(--lapar-cream) !important;
+  border-color: var(--lapar-brown-dark) !important;
+}
+
+/* Admin header's Logout button (.btn-outline-danger). The vendor Davur
+   skin hardcodes white hover text ("style.css" .btn-outline-danger:hover)
+   for every outline-* variant regardless of theme color; this is the only
+   one actually used in the admin UI. */
+.btn-outline-danger:hover,
+.btn-outline-danger:focus,
+.btn-outline-danger:active {
+  color: #9E8760 !important;
+}
+.card .btn-outline-primary {
+  --bs-btn-color: var(--lapar-cream);
+  --bs-btn-border-color: var(--lapar-cream);
+  color: var(--lapar-cream);
+  border-color: var(--lapar-cream);
+}
+.card .btn-outline-primary:hover {
+  color: var(--lapar-brown-dark) !important;
+  background-color: var(--lapar-cream) !important;
+  border-color: var(--lapar-cream) !important;
+}
+.text-primary { color: var(--lapar-brown-dark) !important; }
+.card .text-primary { color: var(--lapar-cream) !important; }
+
+/* Admin menu table's "Hide" toggle is btn-outline-secondary, whose dark
+   slate-gray default is nearly invisible on the now-brown card. */
+.card .btn-outline-secondary {
+  --bs-btn-color: var(--lapar-cream);
+  --bs-btn-border-color: var(--lapar-cream);
+  color: var(--lapar-cream);
+  border-color: var(--lapar-cream);
+}
+
+/* Cards are the app's main "white" surface -> warm brown, cream text.
+   Davur defines .card twice; the second copy (a "widget" variant later
+   in style.css) hardcodes background-color: #fff directly rather than
+   through --bs-card-bg, so only changing the variable has no effect --
+   we have to set background-color itself here too. */
+.card {
+  --bs-card-bg: var(--lapar-brown);
+  --bs-card-cap-bg: rgba(255, 255, 255, 0.07);
+  background-color: var(--lapar-brown);
+  color: var(--lapar-cream-text);
+}
+.card .text-muted { color: var(--lapar-muted-on-brown) !important; }
+.card h1, .card h2, .card h3, .card h4, .card h5, .card h6,
+.card .name, .card .price, .card label { color: var(--lapar-cream-text); }
+/* Davur's ".item-card .info .name" (3 classes) and the global heading
+   reset "h1,...,h6" both have higher specificity than the rules above
+   and hardcode near-black/navy text, so they still win on top of the
+   now-brown card background -- pin these explicitly. */
+.item-card .info .name { color: var(--lapar-cream-text) !important; }
+.card code { background: rgba(255, 255, 255, 0.14); color: var(--lapar-cream-text); }
+
+/* .table hardcodes its own text color rather than inheriting from .card. */
+.table { --bs-table-color: var(--lapar-cream-text); }
+.table-hover > tbody > tr:hover > * { color: var(--lapar-cream-text); --bs-table-accent-bg: rgba(255, 255, 255, 0.06); }
+/* The Davur skin also sets tr:hover's own background-color directly
+   (".table.table-hover tr:hover { background-color: #f1f1f1; }" in
+   style.css), which sits behind/around the cells and shows through the
+   card's brown -- the --bs-table-accent-bg override above alone doesn't
+   reach it. Pin the row itself too. */
+.table.table-hover tr:hover,
+.table-hover > tbody > tr:hover {
+  background-color: var(--lapar-brown-light) !important;
+}
+
+/* bg-light (category chip) stays legible on brown; status colors
+   (danger/warning/success/secondary) are untouched on purpose. */
+.badge.bg-light { color: var(--lapar-brown-dark) !important; }
+
+/* Status track's active step hardcodes bg-primary + text-white, which is
+   unreadable once bg-primary-ish cream is involved -- force dark text. */
+.status-step.bg-primary { color: var(--lapar-brown-dark) !important; }
+/* Inactive steps keep Bootstrap's literal gray bg-light chip (not the
+   card's brown), so the card's cream .text-muted override is too pale
+   here -- pin dark text like the .badge.bg-light case above. */
+.status-step.bg-light { color: var(--lapar-brown-dark) !important; }
+
+/* ---------------- Top bar: centered logo + subtitle ---------------- */
+.lapar-topbar {
+  background: var(--lapar-brown);
+  border-bottom: 1px solid var(--lapar-brown-dark);
+  padding: 14px 16px;
+  text-align: center;
+}
+.lapar-topbar-link {
+  text-decoration: none;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.lapar-logo-img {
+  height: 56px;
+  width: auto;
+}
+
+/* Admin dashboard sidebar brand mark -- nav-header is 80px tall with the
+   logo-abbr span capped at max-width:45px, so this needs to be smaller
+   than the staff-facing .lapar-logo-img. */
+.lapar-admin-logo-img {
+  height: 40px;
+  width: auto;
+}
+.lapar-topbar-sub {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--lapar-cream-text);
+  letter-spacing: 0.3px;
+}
+
+/* ---------------- Full-height layout (staff pages only) ----------------
+   Scoped to body.lapar-body so it never touches the admin dashboard,
+   which reuses the same #main-wrapper id with a completely different
+   (sidebar) layout. Without this, a short page like the landing/homepage
+   (just a heading + QR code) stopped as soon as its content ended,
+   leaving a plain gap below the footer on any screen taller than that --
+   makes the site feel a different "size" page to page. Now the wallpaper
+   + shell always stretch to fill the viewport, pinning the footer to the
+   bottom, while still growing taller than the viewport on long pages
+   (e.g. the menu) exactly as before. */
+body.lapar-body {
+  min-height: 100vh;
+}
+body.lapar-body #main-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+body.lapar-body .lapar-page-body {
+  flex: 1 0 auto;
+}
+body.lapar-body .lapar-topbar,
+body.lapar-body .lapar-footer {
+  flex-shrink: 0;
+}
+
+/* ---------------- Cafe wallpaper background ---------------- */
+.lapar-page-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: #fbf3e7;
+  background-image:
+    radial-gradient(circle at 8% 20%, rgba(196, 142, 75, 0.16) 0, transparent 42%),
+    radial-gradient(circle at 92% 75%, rgba(139, 94, 52, 0.14) 0, transparent 42%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'%3E%3Cg fill='none' stroke='%23b98a4f' stroke-width='2.2' opacity='0.16'%3E%3Cpath d='M40 70h34v26a17 17 0 0 1-17 17h0a17 17 0 0 1-17-17V70z'/%3E%3Cpath d='M74 78h8a10 10 0 0 1 0 20h-8'/%3E%3Cpath d='M48 62c-3-5 2-7 0-12M57 62c-3-5 2-7 0-12M66 62c-3-5 2-7 0-12'/%3E%3Ccircle cx='170' cy='150' r='10'/%3E%3Ccircle cx='188' cy='168' r='7'/%3E%3Ccircle cx='158' cy='172' r='6'/%3E%3Cpath d='M140 40a9 9 0 1 0 18 3 7 7 0 1 0-13-5 5 5 0 1 0-5 2z'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: auto, auto, 220px 220px;
+  background-repeat: no-repeat, no-repeat, repeat;
+  background-position: top left, bottom right, 0 0;
+  animation: laparWallpaperDrift 60s linear infinite;
+}
+@keyframes laparWallpaperDrift {
+  from { background-position: top left, bottom right, 0 0; }
+  to   { background-position: top left, bottom right, 220px 220px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lapar-page-body { animation: none; }
+}
+
+/* ---------------- 3-column shell ---------------- */
+.lapar-shell {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 16px 60px;
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr) 240px;
+  gap: 22px;
+  align-items: start;
+  position: relative;
+  z-index: 1;
+  /* Stretch to fill .lapar-page-body's full height (itself flexed to
+     fill the viewport, see above) instead of only taking the height of
+     its own content -- keeps a short page's shell/panels the same
+     "size" as a long page's, with the wallpaper never visible as a bare
+     gap below the grid on short pages like the homepage. */
+  flex: 1 0 auto;
+}
+
+.lapar-panel {
+  position: sticky;
+  top: 20px;
+}
+.lapar-panel-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--lapar-brown);
+  margin-bottom: 10px;
+  padding-left: 4px;
+}
+.lapar-side-nav {
+  background: var(--lapar-brown);
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(20, 20, 40, 0.06);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.lapar-side-nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--lapar-cream-text);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+.lapar-side-nav a i { width: 18px; text-align: center; color: var(--lapar-cream); }
+.lapar-side-nav a:hover { background: var(--lapar-brown-light); }
+.lapar-side-nav a.active { background: var(--lapar-cream); color: var(--lapar-brown-dark); }
+.lapar-side-nav a.active i { color: var(--lapar-brown-dark); }
+
+.lapar-panel-center { min-width: 0; }
+
+.lapar-side-card {
+  background: var(--lapar-brown);
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(20, 20, 40, 0.06);
+  padding: 18px 16px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.lapar-side-card-icon {
+  font-size: 1.6rem;
+  color: var(--lapar-cream);
+  margin-bottom: 8px;
+  display: block;
+}
+.lapar-side-card h6 { font-weight: 700; margin-bottom: 6px; color: var(--lapar-cream-text); }
+.lapar-side-card p { font-size: 0.82rem; color: var(--lapar-muted-on-brown); margin-bottom: 12px; }
+
+.lapar-order-history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+}
+.lapar-order-history-list li {
+  padding: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.lapar-order-history-list li:first-child { border-top: none; padding-top: 0; }
+.lapar-order-history-list a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--lapar-cream-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.lapar-order-history-list a:hover { color: var(--lapar-cream); }
+.lapar-order-history-date {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--lapar-muted-on-brown);
+  margin-top: 2px;
+}
+
+@media only screen and (max-width: 991px) {
+  .lapar-shell {
+    grid-template-columns: 1fr;
+    padding: 16px 16px 60px;
+  }
+  .lapar-panel { position: static; }
+  .lapar-panel-left { order: 1; }
+  .lapar-panel-center { order: 2; }
+  .lapar-panel-right { order: 3; }
+  .lapar-side-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    justify-content: center;
+  }
+  .lapar-side-nav a { flex-direction: column; gap: 4px; font-size: 0.78rem; white-space: nowrap; }
+  .lapar-side-card { text-align: left; display: flex; align-items: center; gap: 14px; }
+  .lapar-side-card-icon { margin-bottom: 0; }
+  .lapar-side-card .btn { width: auto !important; white-space: nowrap; }
+}
+
+.lapar-container {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+/* Landing page only: its content (heading + QR code) is short, so on
+   desktop it's centered within the full-height center column rather
+   than sitting at the top with bare wallpaper below -- other pages
+   (e.g. the menu's long item grid) don't use this class and keep their
+   normal top-down flow. */
+@media only screen and (min-width: 992px) {
+  .lapar-container:has(.lapar-hero) {
+    height: 100%;
+    display: flex;
+  }
+  .lapar-hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+.lapar-footer {
+  text-align: center;
+  background: var(--lapar-brown-dark);
+  color: var(--lapar-cream-text);
+  font-size: 0.78rem;
+  padding: 20px 24px;
+  /* No position/z-index here: .lapar-shell (a sibling's descendant) has
+     its own z-index:1, which traps the fixed .lapar-cart-bar inside that
+     local stacking context; if this footer also claimed z-index:1, the
+     tie was resolved by DOM order in the footer's favor, painting it
+     over the "Submit Order" bar on any page short enough to scroll to
+     the very bottom. Leaving the footer as a plain in-flow box (z-index:
+     auto) lets the shell's positioned context -- and the cart bar inside
+     it -- paint above it as intended. */
+}
+.lapar-footer-credit {
+  margin-top: 4px;
+  color: var(--lapar-muted-on-brown);
+  font-size: 0.72rem;
+}
+.lapar-admin-footer {
+  background: var(--lapar-brown-dark) !important;
+}
+.lapar-admin-footer .copyright p {
+  color: var(--lapar-cream-text);
+  margin-bottom: 2px;
+  font-size: 0.85rem;
+}
+.lapar-admin-footer .copyright p.lapar-footer-credit {
+  color: var(--lapar-muted-on-brown);
+  font-size: 0.72rem;
+}
+
+/* QR landing */
+.lapar-qr-box {
+  display: inline-block;
+  padding: 16px;
+  background: var(--lapar-brown);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(59, 42, 30, 0.18);
+}
+.lapar-qr-box img { border-radius: 8px; display: block; }
+
+/* Menu item cards */
+.lapar-item-card { margin-bottom: 20px; cursor: default; }
+.lapar-item-card .item-card { height: 100%; }
+.lapar-item-card img.dish-img { height: 140px; object-fit: cover; width: 100%; }
+.dish-icon-tile {
+  height: 110px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--lapar-brown-light), var(--lapar-brown));
+  color: var(--lapar-cream);
+  font-size: 2.4rem;
+}
+.lapar-qty-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 15px 15px;
+}
+.lapar-qty-control { display: flex; align-items: center; gap: 8px; }
+.lapar-qty-control .qty-btn {
+  width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--lapar-brown-light);
+  background: var(--lapar-brown-light); color: var(--lapar-cream-text); font-weight: 700; line-height: 1;
+}
+.lapar-qty-control .qty-input {
+  width: 42px; text-align: center; border: 1px solid var(--lapar-brown-light); border-radius: 6px; padding: 4px;
+  background: var(--lapar-cream-text); color: var(--lapar-brown-dark);
+}
+
+/* Catering packages */
+.lapar-package-card {
+  background: var(--lapar-brown);
+  border: 2px solid var(--lapar-brown-light);
+  border-radius: 14px;
+  padding: 16px;
+  height: 100%;
+  cursor: pointer;
+  color: var(--lapar-cream-text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.lapar-package-card .text-muted { color: var(--lapar-muted-on-brown) !important; }
+.lapar-package-card .text-primary { color: var(--lapar-cream) !important; }
+.lapar-package-card h1, .lapar-package-card h2, .lapar-package-card h3,
+.lapar-package-card h4, .lapar-package-card h5, .lapar-package-card h6 {
+  color: var(--lapar-cream-text) !important;
+}
+.lapar-package-card:hover { border-color: var(--lapar-cream); }
+.lapar-package-card.selected {
+  border-color: var(--lapar-cream);
+  box-shadow: 0 6px 18px rgba(232, 212, 169, 0.25);
+}
+.lapar-package-card .pax-badge {
+  display: inline-block;
+  background: var(--lapar-cream);
+  color: var(--lapar-brown-dark);
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+}
+
+/* Sticky cart bar */
+.lapar-cart-bar {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  background: var(--lapar-brown); border-top: 1px solid var(--lapar-brown-dark);
+  padding: 14px 20px; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 -6px 20px rgba(0,0,0,0.2);
+}
+.lapar-cart-bar .text-muted { color: var(--lapar-muted-on-brown) !important; }
+.lapar-cart-bar strong { color: var(--lapar-cream-text); }
+
+/* Order status */
+.lapar-status-header h4, .lapar-status-header h3 { color: #fff; margin: 0; }
+.lapar-order-list { list-style: none; padding: 0; margin: 0; }
+.lapar-order-list li { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed rgba(255,255,255,0.15); }
+.lapar-order-list li:last-child { border-bottom: none; }
+.lapar-notif-banner {
+  border-radius: 10px; padding: 14px 16px; margin-bottom: 18px; font-weight: 600;
+}
+
+/* Admin */
+.lapar-admin-nav .badge-count { margin-left: auto; }
+
+.lapar-page-title {
+  font-size: 1.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media only screen and (max-width: 575px) {
+  .lapar-page-title { font-size: 0.95rem; max-width: 150px; }
+  .lapar-page-title i { display: none; } /* icon crowds a long title on very small screens */
+}
+
+/* Mobile admin sidebar — driven by our own JS toggle (see admin_base.html),
+   independent of Davur's desktop-oriented dezSettings collapse system. */
+@media only screen and (max-width: 991px) {
+  #laparDeznav {
+    left: -300px !important;
+    transition: left 0.3s ease;
+    z-index: 1000;
+  }
+  #laparDeznav.lapar-sidebar-open {
+    left: 0 !important;
+  }
+}
+.lapar-sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999;
+}
+.lapar-sidebar-backdrop.show {
+  display: block;
+}
+
+/* =====================================================================
+   Admin dashboard chrome (sidebar + top header) is the last big white
+   surface -> brown, same as everywhere else. This also fixes two real
+   contrast bugs the --primary: cream swap otherwise introduces here:
+   the active sidebar item rendered cream text on a barely-tinted white
+   pill (nearly invisible), and .brand-title is white-on-white by
+   default in this Davur skin (only ever meant to show on a dark navbar).
+   ===================================================================== */
+.deznav, .header, .nav-header {
+  background-color: var(--lapar-brown) !important;
+}
+.nav-header .brand-title { color: var(--lapar-cream-text); }
+.header .text-muted, .nav-header .text-muted { color: var(--lapar-muted-on-brown) !important; }
+.header .text-primary, .nav-header .text-primary { color: var(--lapar-cream) !important; }
+.lapar-page-title { color: var(--lapar-cream-text) !important; }
+
+.deznav .metismenu > li > a {
+  color: var(--lapar-muted-on-brown);
+}
+.deznav .metismenu > li > a i { color: var(--lapar-cream); }
+.deznav .metismenu > li > a:hover {
+  background: var(--lapar-brown-light) !important;
+  color: var(--lapar-cream-text) !important;
+}
+.deznav .metismenu > li.mm-active > a {
+  background: var(--lapar-cream) !important;
+  color: var(--lapar-brown-dark) !important;
+}
+.deznav .metismenu > li.mm-active > a i { color: var(--lapar-brown-dark) !important; }
+.nav-control .hamburger .line { background-color: var(--lapar-cream); }

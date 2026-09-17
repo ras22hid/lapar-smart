@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order.order_id }}{% endblock %}
+{% block right_panel %}{% endblock %}
+{% block content %}
+{% set header_class = {
+  "Pending": "bg-danger",
+  "Preparing": "bg-warning",
+  "Ready": "bg-success",
+  "Completed": "bg-secondary"
+} %}
+
+<div id="notif-banner" class="lapar-notif-banner alert alert-success" hidden></div>
+
+<div class="card shadow-sm">
+  <div class="card-header {{ header_class[order.status] }} lapar-status-header d-flex justify-content-between align-items-center">
+    <div>
+      <h4>Order #{{ order.order_id }}</h4>
+      <span class="text-white-50">{{ order.order_type }} &middot; Staff {{ order.staff_id }}</span>
+    </div>
+    <h3>{{ order.status }}</h3>
+  </div>
+  <div class="card-body">
+    <div class="d-flex mb-4">
+      {% for s in ["Pending", "Preparing", "Ready", "Completed"] %}
+      <div class="flex-fill text-center py-2 mx-1 rounded status-step {{ 'bg-primary text-white fw-bold' if order.status == s else 'bg-light text-muted' }}" data-status="{{ s }}">{{ s }}</div>
+      {% endfor %}
+    </div>
+
+    {% if order.order_type == "MeetingRoom" %}
+    <ul class="lapar-order-list mb-3">
+      <li><span>{{ order.package_name }} &times; {{ order.package_qty }} <span class="text-muted">({{ order.package_pax }} pax each)</span></span><span>RM {{ "%.2f"|format(order.total_amount) }}</span></li>
+    </ul>
+    {% else %}
+    <ul class="lapar-order-list mb-3">
+      {% for it in items %}
+      <li><span>{{ it.name }} &times; {{ it.quantity }}</span><span>RM {{ "%.2f"|format(it.subtotal) }}</span></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    <div class="d-flex justify-content-between fw-bold fs-5 border-top pt-3">
+      <span>Total</span><span>RM {{ "%.2f"|format(order.total_amount) }}</span>
+    </div>
+
+    {% if order.order_type == "MeetingRoom" %}
+    <p class="text-muted mt-3 mb-0"><i class="fa-solid fa-calendar-check me-1"></i>Meeting Room: {{ order.meeting_room }} &middot; Requested time: {{ order.meeting_time }}</p>
+    {% endif %}
+  </div>
+</div>
+
+<p class="text-muted small mt-3"><i class="fa-solid fa-circle-info me-1"></i>UC6 &middot; When your order status reaches <strong>Ready</strong>, collect it and pay at the Lazaria Cafe counter.</p>
+<a class="btn btn-outline-primary btn-rounded" href="{{ url_for('staff.menu', staff_id=staff_id) }}"><i class="fa-solid fa-arrow-left me-2"></i>Back to Menu</a>
+
+<script>
+  const ORDER_ID = {{ order.order_id }};
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/notify.js') }}"></script>
+{% endblock %}

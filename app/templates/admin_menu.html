@@ -1,0 +1,77 @@
+{% extends "admin_base.html" %}
+{% block title %}Menu{% endblock %}
+{% block page_title %}<i class="fa-solid fa-utensils me-2 text-primary"></i>UC7 &middot; Update Daily Menu{% endblock %}
+{% block content %}
+{% if error == "item_in_use" %}
+<div class="alert alert-danger">This item already has past orders and can't be deleted. Use Hide instead to remove it from the staff menu while keeping order history intact.</div>
+{% endif %}
+<div class="card shadow-sm">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Today's Menu <span class="text-muted small">({{ today }})</span></h5>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr><th>Name</th><th>Price</th><th>Category</th><th>Available</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+          <tr>
+            <td>{{ item.name }}</td>
+            <td>RM {{ "%.2f"|format(item.price) }}</td>
+            <td><span class="badge bg-light text-dark">{{ item.category }}</span></td>
+            <td>
+              {% if item.is_available %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}
+            </td>
+            <td class="text-end text-nowrap">
+              <form method="post" class="d-inline">
+                <input type="hidden" name="action" value="toggle">
+                <input type="hidden" name="item_id" value="{{ item.item_id }}">
+                <button type="submit" class="btn btn-sm btn-outline-secondary" title="{{ 'Hide' if item.is_available else 'Show' }}">
+                  <i class="fa-solid {{ 'fa-eye-slash' if item.is_available else 'fa-eye' }}"></i>
+                </button>
+              </form>
+              <form method="post" class="d-inline" onsubmit="return confirm('Remove this item?')">
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="item_id" value="{{ item.item_id }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm mt-4">
+  <div class="card-header"><h5 class="mb-0">Add Menu Item</h5></div>
+  <div class="card-body">
+    <form method="post" class="row g-3">
+      <input type="hidden" name="action" value="add">
+      <div class="col-md-4">
+        <label class="form-label text-muted small">Name</label>
+        <input type="text" name="name" class="form-control" required>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label text-muted small">Price (RM)</label>
+        <input type="number" step="0.10" name="price" class="form-control" required>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label text-muted small">Category</label>
+        <select name="category" class="form-select">
+          <option value="Food">Food</option>
+          <option value="Beverage">Beverage</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-plus me-1"></i>Add</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

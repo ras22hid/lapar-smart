@@ -1,0 +1,33 @@
+@startuml SequenceDiagram_RegisterAdmin
+' Sequence Diagram - Register (Complete Registration), Cafe Admin (UC8)
+' Plain black-and-white style matching the report's existing sequence
+' diagrams (e.g. Manage Users).
+
+skinparam shadowing false
+skinparam defaultFontName Arial
+hide footbox
+
+skinparam sequence {
+  ArrowColor black
+  LifeLineBorderColor black
+  LifeLineBackgroundColor white
+  ParticipantBorderColor black
+  ParticipantBackgroundColor white
+  ParticipantFontColor black
+  ParticipantFontStyle bold
+}
+
+participant "Cafe Admin" as Admin
+participant "Flask Server" as Flask
+participant "SQLite DB" as DB
+
+Admin -> Flask : 1: Request registration page
+Flask --> Admin : 2: Display registration form
+Admin -> Flask : 3: Submit Admin ID, password, confirm password
+Flask -> DB : 4: Check admin_id exists, active,\npassword_hash IS NULL
+DB --> Flask : 5: Return admin record
+Flask -> DB : 6: Update password_hash for admin_id
+DB --> Flask : 7: Confirm update
+Flask --> Admin : 8: Registration complete; redirect to login
+
+@enduml

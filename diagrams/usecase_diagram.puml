@@ -1,0 +1,72 @@
+@startuml UseCaseDiagram_LaparSmart
+' Use Case Diagram - Lapar Smart: QR Menu Ordering System
+' Plain black-and-white style matching the report's original Figure 3.1,
+' extended with the RBAC admin authentication use cases (Login,
+' Register, Forgot Password, Reset Password) added after that figure
+' was first drawn - the system previously relied on a single hardcoded
+' admin passcode with no such use cases at all.
+
+left to right direction
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam ArrowColor black
+hide circle
+
+skinparam usecase {
+  BackgroundColor white
+  BorderColor black
+  FontColor black
+}
+skinparam actor {
+  BackgroundColor white
+  BorderColor black
+  FontColor black
+}
+
+actor "FAMA Staff" as Staff
+actor "Cafe Admin" as Admin
+
+rectangle "Lapar Smart: QR Menu Ordering System" {
+  usecase "Scan QR Code" as UC1
+  usecase "View Daily Menu" as UC2
+  usecase "Place Order" as UC3
+  usecase "Reserve Meeting\nRoom Order" as UC4
+  usecase "Receive Order\nNotification" as UC5
+  usecase "Pay at Counter" as UC6
+
+  usecase "Login" as UC7
+  usecase "Register" as UC8
+  usecase "Forgot Password" as UC9
+  usecase "Reset Password" as UC10
+  usecase "Update Daily Menu" as UC11
+  usecase "View Orders" as UC12
+  usecase "Update Order\nStatus" as UC13
+  usecase "Manage Users" as UC14
+}
+
+Staff -- UC1
+Staff -- UC2
+Staff -- UC3
+Staff -- UC4
+Staff -- UC5
+Staff -- UC6
+
+UC7 -- Admin
+UC8 -- Admin
+UC9 -- Admin
+UC10 -- Admin
+UC11 -- Admin
+UC12 -- Admin
+UC13 -- Admin
+UC14 -- Admin
+
+' Hidden pairing edges: nudge each Staff row to sit level with an Admin
+' row so the two columns render side-by-side instead of stacked.
+UC1 -[hidden]- UC7
+UC2 -[hidden]- UC8
+UC3 -[hidden]- UC9
+UC4 -[hidden]- UC10
+UC5 -[hidden]- UC11
+UC6 -[hidden]- UC12
+
+@enduml

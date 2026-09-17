@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}Daily Menu{% endblock %}
+
+{% block right_panel %}
+{% set badge_class = {
+  "Pending": "bg-danger",
+  "Preparing": "bg-warning",
+  "Ready": "bg-success",
+  "Completed": "bg-secondary"
+} %}
+<div class="lapar-side-card">
+  <i class="fa-solid fa-receipt lapar-side-card-icon"></i>
+  <h6>Order Status</h6>
+  {% if my_orders %}
+  {% set latest = my_orders[0] %}
+  <p class="text-muted small mb-2">Order #{{ latest.order_id }} &middot; {{ latest.order_type }}</p>
+  <span class="badge {{ badge_class[latest.status] }} mb-2">{{ latest.status }}</span>
+  <a href="{{ url_for('staff.order_status', order_id=latest.order_id, staff_id=staff_id) }}" class="btn btn-primary btn-sm btn-rounded w-100">Track Order</a>
+  {% else %}
+  <p class="text-muted small mb-0">You haven't placed an order yet today.</p>
+  {% endif %}
+</div>
+<div class="lapar-side-card">
+  <i class="fa-solid fa-clock-rotate-left lapar-side-card-icon"></i>
+  <h6>Order History</h6>
+  {% if my_orders %}
+  <ul class="lapar-order-history-list">
+    {% for o in my_orders %}
+    <li>
+      <a href="{{ url_for('staff.order_status', order_id=o.order_id, staff_id=staff_id) }}">
+        <span>#{{ o.order_id }} &middot; {{ o.order_type }}</span>
+        <span class="badge {{ badge_class[o.status] }}">{{ o.status }}</span>
+      </a>
+      <span class="lapar-order-history-date">{{ o.order_date }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-muted small mb-0">No orders yet.</p>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h2 class="fw-bold mb-0">Today's Menu <span class="text-muted fs-6">({{ today }})</span></h2>
+  <div class="d-flex align-items-center gap-2">
+    <label class="text-muted small mb-0">Staff ID</label>
+    <input type="text" name="staff_id" form="order-form" value="{{ staff_id }}" class="form-control form-control-sm" style="width:110px" required>
+  </div>
+</div>
+
+{% if request.args.get('error') == 'empty_cart' %}
+<div class="alert alert-danger">Please select at least one item (or a catering package) before submitting your order.</div>
+{% elif request.args.get('error') == 'invalid_staff' %}
+<div class="alert alert-danger">"{{ staff_id }}" is not a recognized, active Staff ID. Please check it and try again.</div>
+{% endif %}
+
+<form id="order-form" method="post" action="{{ url_for('staff.place_order') }}">
+  <input type="hidden" name="order_type" id="order_type" value="Counter">
+
+  <div class="card shadow-sm mb-4" id="meeting">
+    <div class="card-body">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="is_meeting" onchange="toggleMeeting()">
+        <label class="form-check-label fw-bold" for="is_meeting"><i class="fa-solid fa-calendar-check text-primary me-1"></i> UC4 &middot; This is a Meeting Room reservation order (bulk catering)</label>
+      </div>
+      <div id="meeting-fields" class="row mt-3" hidden>
+        <div class="col-md-6 mb-3">
+          <label class="form-label text-muted small">Meeting Room</label>
+          <input type="text" name="meeting_room" class="form-control" placeholder="e.g. Meeting Room 2">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label text-muted small">Requested Date &amp; Time</label>
+          <input type="datetime-local" name="meeting_time" class="form-control">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="regular-menu-section">
+    {% set food_icons = ["fa-bowl-food","fa-burger","fa-bacon","fa-pizza-slice","fa-bowl-rice","fa-drumstick-bite"] %}
+    {% set drink_icons = ["fa-mug-hot","fa-mug-saucer","fa-glass-water","fa-martini-glass-citrus"] %}
+    {% set categories = items|map(attribute='category')|unique|list %}
+    {% for cat in categories %}
+    <h5 class="fw-bold mt-4 mb-3"><i class="fa-solid {{ 'fa-mug-hot' if cat == 'Beverage' else 'fa-drumstick-bite' }} text-primary me-2"></i>{{ cat }}</h5>
+    <div class="row">
+      {% for item in items if item.category == cat %}
+      <div class="col-6 col-md-4 lapar-item-card">
+        <div class="card item-card shadow-sm">
+          <div class="card-body p-0">
+            <div class="dish-icon-tile">
+              {% set icon_set = drink_icons if cat == "Beverage" else food_icons %}
+              <i class="fa-solid {{ icon_set[loop.index0 % icon_set|length] }}"></i>
+            </div>
+            <div class="info">
+              <h5 class="name">{{ item.name }}</h5>
+              <h6 class="mb-0 price">RM {{ "%.2f"|format(item.price) }}</h6>
+            </div>
+            <div class="lapar-qty-row">
+              <input type="hidden" name="item_id" value="{{ item.item_id }}" class="regular-input">
+              <div class="lapar-qty-control">
+                <button type="button" class="qty-btn" onclick="changeQty(this, -1)">&minus;</button>
+                <input type="number" name="quantity" class="qty-input regular-input" value="0" min="0" data-price="{{ item.price }}" oninput="updateTotal()">
+                <button type="button" class="qty-btn" onclick="changeQty(this, 1)">&plus;</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div id="catering-section" hidden>
+    <h5 class="fw-bold mt-4 mb-3"><i class="fa-solid fa-people-group text-primary me-2"></i>Catering Packages</h5>
+    <p class="text-muted small">Catering is priced per package for a fixed headcount (pax), not per single item &mdash; pick a package and how many you need for your event.</p>
+    <input type="hidden" name="package_id" id="package_id">
+    <div class="row">
+      {% for pkg in packages %}
+      <div class="col-md-4 mb-3">
+        <div class="lapar-package-card" data-package-id="{{ pkg.package_id }}" data-price="{{ pkg.price }}" onclick="selectPackage({{ pkg.package_id }}, {{ pkg.price }})">
+          <span class="pax-badge"><i class="fa-solid fa-user-group me-1"></i>{{ pkg.pax }} pax</span>
+          <h6 class="fw-bold mb-1">{{ pkg.name }}</h6>
+          <p class="text-muted small mb-2">{{ pkg.description }}</p>
+          <div class="fw-bold text-primary">RM {{ "%.2f"|format(pkg.price) }} <span class="text-muted fw-normal small">/ package</span></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="row align-items-end mt-2">
+      <div class="col-md-4">
+        <label class="form-label text-muted small">Number of Packages</label>
+        <div class="lapar-qty-control">
+          <button type="button" class="qty-btn" onclick="changePackageQty(-1)">&minus;</button>
+          <input type="number" name="package_qty" id="package_qty" class="qty-input" value="1" min="1" oninput="updateTotal()">
+          <button type="button" class="qty-btn" onclick="changePackageQty(1)">&plus;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lapar-cart-bar">
+    <div>
+      <span class="text-muted small d-block">Total</span>
+      <strong id="total-display" class="fs-5">RM 0.00</strong>
+    </div>
+    <button type="submit" class="btn btn-primary btn-rounded px-4"><i class="fa-solid fa-check me-2"></i>Submit Order</button>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/menu.js') }}"></script>
+{% endblock %}

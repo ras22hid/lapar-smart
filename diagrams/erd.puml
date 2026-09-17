@@ -1,0 +1,106 @@
+@startuml ERD_LaparSmart
+' Entity Relationship Diagram - Lapar Smart: QR Menu Ordering System
+' Generated from app/db.py SCHEMA
+
+hide circle
+skinparam linetype ortho
+skinparam shadowing false
+skinparam roundcorner 4
+skinparam defaultFontName IBM Plex Sans
+
+skinparam entity {
+  BackgroundColor #eaf2f8
+  BorderColor #1f5f8b
+  FontColor #17212e
+  FontSize 13
+}
+skinparam class {
+  AttributeFontColor #17212e
+  AttributeFontSize 12
+}
+skinparam ArrowColor #c4531c
+skinparam ArrowFontColor #17212e
+skinparam note {
+  BackgroundColor #fff8ee
+  BorderColor #e0b98a
+}
+
+entity "STAFF" as staff {
+  * staff_id : TEXT <<PK>>
+  --
+  name : TEXT
+  department : TEXT
+  active : INTEGER
+}
+
+entity "ADMIN" as admin {
+  * admin_id : TEXT <<PK>>
+  --
+  name : TEXT
+  role : TEXT
+  active : INTEGER
+  email : TEXT
+}
+
+entity "MENU_ITEM" as menu_item {
+  * item_id : INTEGER <<PK>>
+  --
+  name : TEXT
+  price : REAL
+  category : TEXT
+  available_date : TEXT
+  is_available : INTEGER
+}
+
+entity "ORDERS" as orders {
+  * order_id : INTEGER <<PK>>
+  --
+  staff_id : TEXT <<FK>>
+  order_type : TEXT
+  status : TEXT
+  total_amount : REAL
+  order_date : TEXT
+  meeting_room : TEXT
+  meeting_time : TEXT
+  package_name : TEXT
+  package_pax : INTEGER
+  package_qty : INTEGER
+}
+
+entity "ORDER_ITEM" as order_item {
+  * order_item_id : INTEGER <<PK>>
+  --
+  order_id : INTEGER <<FK>>
+  item_id : INTEGER <<FK>>
+  quantity : INTEGER
+  subtotal : REAL
+}
+
+entity "CATERING_PACKAGE" as catering_package {
+  * package_id : INTEGER <<PK>>
+  --
+  name : TEXT
+  pax : INTEGER
+  price : REAL
+  description : TEXT
+  is_available : INTEGER
+}
+
+entity "NOTIFICATION" as notification {
+  * notification_id : INTEGER <<PK>>
+  --
+  order_id : INTEGER <<FK>>
+  message : TEXT
+  sent_time : TEXT
+  is_read : INTEGER
+}
+
+staff       ||--o{ orders      : places
+staff       ||--o{ catering_package : books
+admin       ||--o{ order_item  : update
+orders      ||--o{ order_item  : contains
+menu_item   ||--o{ order_item  : "listed in"
+orders      ||--o{ notification : generates
+
+
+@enduml

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Scan to Order{% endblock %}
+{% block content %}
+<div class="text-center lapar-hero">
+  <h2 class="fw-bold">Scan &amp; Order at Lazaria Cafe</h2>
+  <p class="text-muted">Scan the QR code below with your phone camera to open today's menu.</p>
+
+  {% if qr_uri %}
+  <div class="mb-2">
+    <div class="lapar-qr-box">
+      <img src="{{ qr_uri }}" alt="QR code to Lapar Smart menu" width="220" height="220">
+    </div>
+    <p class="text-muted small mt-2"><i class="fa-solid fa-qrcode"></i> UC1 &middot; Scan QR Code</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

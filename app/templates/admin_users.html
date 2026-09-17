@@ -1,0 +1,89 @@
+{% extends "admin_base.html" %}
+{% block title %}Users{% endblock %}
+{% block page_title %}<i class="fa-solid fa-users me-2 text-primary"></i>UC10 &middot; Manage Users{% endblock %}
+{% block content %}
+<div class="card shadow-sm mb-4">
+  <div class="card-header"><h5 class="mb-0">FAMA Staff</h5></div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead><tr><th>Staff ID</th><th>Name</th><th>Department</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          {% for s in staff_rows %}
+          <tr>
+            <td>{{ s.staff_id }}</td><td>{{ s.name }}</td><td>{{ s.department }}</td>
+            <td>{% if s.active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Deactivated</span>{% endif %}</td>
+            <td>
+              <form method="post">
+                <input type="hidden" name="action" value="toggle">
+                <input type="hidden" name="role_table" value="staff">
+                <input type="hidden" name="user_id" value="{{ s.staff_id }}">
+                <button type="submit" class="btn btn-sm btn-outline-secondary">{{ "Deactivate" if s.active else "Activate" }}</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card-body border-top">
+    <form method="post" class="row g-3">
+      <input type="hidden" name="action" value="add">
+      <input type="hidden" name="role_table" value="staff">
+      <div class="col-md-3"><label class="form-label text-muted small">Staff ID</label><input type="text" name="user_id" class="form-control" required></div>
+      <div class="col-md-4"><label class="form-label text-muted small">Name</label><input type="text" name="name" class="form-control" required></div>
+      <div class="col-md-3"><label class="form-label text-muted small">Department</label><input type="text" name="extra" class="form-control"></div>
+      <div class="col-md-2 d-flex align-items-end"><button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-plus me-1"></i>Add</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header"><h5 class="mb-0">Cafe Admins</h5></div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead><tr><th>Admin ID</th><th>Name</th><th>Role</th><th>Status</th><th>Registration</th><th>Email (for password reset)</th><th></th></tr></thead>
+        <tbody>
+          {% for a in admin_rows %}
+          <tr>
+            <td>{{ a.admin_id }}</td><td>{{ a.name }}</td><td>{{ a.role }}</td>
+            <td>{% if a.active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Deactivated</span>{% endif %}</td>
+            <td>{% if a.password_hash %}<span class="badge bg-success">Registered</span>{% else %}<span class="badge bg-warning text-dark">Pending</span>{% endif %}</td>
+            <td>
+              <form method="post" class="d-flex gap-1">
+                <input type="hidden" name="action" value="set_email">
+                <input type="hidden" name="role_table" value="admin">
+                <input type="hidden" name="user_id" value="{{ a.admin_id }}">
+                <input type="email" name="email" class="form-control form-control-sm" value="{{ a.email or '' }}" placeholder="admin@example.com" style="min-width:170px">
+                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Save email"><i class="fa-solid fa-floppy-disk"></i></button>
+              </form>
+            </td>
+            <td>
+              <form method="post">
+                <input type="hidden" name="action" value="toggle">
+                <input type="hidden" name="role_table" value="admin">
+                <input type="hidden" name="user_id" value="{{ a.admin_id }}">
+                <button type="submit" class="btn btn-sm btn-outline-secondary">{{ "Deactivate" if a.active else "Activate" }}</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card-body border-top">
+    <form method="post" class="row g-3">
+      <input type="hidden" name="action" value="add">
+      <input type="hidden" name="role_table" value="admin">
+      <div class="col-md-2"><label class="form-label text-muted small">Admin ID</label><input type="text" name="user_id" class="form-control" required></div>
+      <div class="col-md-3"><label class="form-label text-muted small">Name</label><input type="text" name="name" class="form-control" required></div>
+      <div class="col-md-2"><label class="form-label text-muted small">Role</label><input type="text" name="extra" class="form-control" value="Cafe Admin"></div>
+      <div class="col-md-3"><label class="form-label text-muted small">Email (for password reset)</label><input type="email" name="email" class="form-control" placeholder="admin@example.com"></div>
+      <div class="col-md-2 d-flex align-items-end"><button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-plus me-1"></i>Add</button></div>
+    </form>
+  </div>
+</div>
+{% endblock %}

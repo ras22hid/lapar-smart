@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Admin{% endblock %} · Lapar Smart</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='vendor/dashboard/images/favicon.png') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="{{ url_for('static', filename='vendor/dashboard/css/style.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/lapar.css') }}" rel="stylesheet">
+</head>
+<body>
+  <div id="main-wrapper">
+    <div class="nav-header">
+      <a href="{{ url_for('admin.orders') }}" class="brand-logo">
+        <span class="logo-abbr"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Lapar Smart" class="lapar-admin-logo-img"></span>
+        <span class="brand-title fw-bold fs-5 ms-2">Lapar Smart</span>
+      </a>
+      <div class="nav-control" id="laparSidebarToggle">
+        <div class="hamburger">
+          <span class="line"></span><span class="line"></span><span class="line"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="header">
+      <div class="header-content">
+        <nav class="navbar navbar-expand">
+          <div class="collapse navbar-collapse justify-content-between">
+            <div class="header-left">
+              <h4 class="mb-0 fw-bold lapar-page-title">{% block page_title %}Admin Dashboard{% endblock %}</h4>
+            </div>
+            <ul class="navbar-nav header-right">
+              <li class="nav-item">
+                <a href="{{ url_for('admin.logout') }}" class="btn btn-outline-danger btn-sm btn-rounded">
+                  <i class="fa-solid fa-right-from-bracket me-1"></i><span class="d-none d-sm-inline">Logout</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+    </div>
+
+    <div class="lapar-sidebar-backdrop" id="laparSidebarBackdrop"></div>
+    <div class="deznav" id="laparDeznav">
+      <div class="deznav-scroll">
+        <ul class="metismenu" id="menu">
+          <li class="{{ 'mm-active' if request.endpoint == 'admin.orders' }}">
+            <a href="{{ url_for('admin.orders') }}" class="ai-icon">
+              <i class="fa-solid fa-receipt"></i>
+              <span class="nav-text">Orders</span>
+            </a>
+          </li>
+          <li class="{{ 'mm-active' if request.endpoint == 'admin.menu' }}">
+            <a href="{{ url_for('admin.menu') }}" class="ai-icon">
+              <i class="fa-solid fa-utensils"></i>
+              <span class="nav-text">Menu</span>
+            </a>
+          </li>
+          <li class="{{ 'mm-active' if request.endpoint == 'admin.users' }}">
+            <a href="{{ url_for('admin.users') }}" class="ai-icon">
+              <i class="fa-solid fa-users"></i>
+              <span class="nav-text">Users</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="content-body">
+      <div class="container-fluid">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+
+    <footer class="footer lapar-admin-footer">
+      <div class="copyright">
+        <p>Lapar Smart: QR Menu Ordering System &mdash; FYP Demo</p>
+        <p class="lapar-footer-credit">&copy; 2026 Abdul Rashid Bin Alias (B24030058). All rights reserved.</p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="{{ url_for('static', filename='vendor/dashboard/vendor/global/global.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/dashboard/js/custom.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/dashboard/js/deznav-init.js') }}"></script>
+  <script>
+    // Davur's own sidebar JS is desktop-oriented (mini/collapsed toggle) and
+    // fights with mobile off-canvas behavior, so drive the mobile sidebar
+    // open/close ourselves directly, independent of its dezSettings system.
+    (function () {
+      var deznav = document.getElementById('laparDeznav');
+      var backdrop = document.getElementById('laparSidebarBackdrop');
+      var toggle = document.getElementById('laparSidebarToggle');
+
+      function openSidebar() {
+        deznav.classList.add('lapar-sidebar-open');
+        backdrop.classList.add('show');
+      }
+      function closeSidebar() {
+        deznav.classList.remove('lapar-sidebar-open');
+        backdrop.classList.remove('show');
+      }
+      toggle.addEventListener('click', function () {
+        if (window.innerWidth > 991) return; // desktop nav is always visible
+        deznav.classList.contains('lapar-sidebar-open') ? closeSidebar() : openSidebar();
+      });
+      backdrop.addEventListener('click', closeSidebar);
+      deznav.querySelectorAll('a').forEach(function (a) {
+        a.addEventListener('click', closeSidebar);
+      });
+    })();
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
