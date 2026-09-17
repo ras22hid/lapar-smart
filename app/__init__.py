@@ -4,7 +4,7 @@ import warnings
 from flask import Flask
 from dotenv import load_dotenv
 
-from .db import init_db
+from .db import init_db, clean_env_value
 
 load_dotenv()
 
@@ -12,7 +12,7 @@ load_dotenv()
 def create_app():
     app = Flask(__name__)
 
-    secret_key = os.environ.get("SECRET_KEY")
+    secret_key = clean_env_value(os.environ.get("SECRET_KEY"))
     if not secret_key:
         # No hardcoded fallback: generate a random key so a missing env var
         # never means "use a fixed, publicly-known secret" -- but on a

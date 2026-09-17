@@ -5,6 +5,24 @@ from datetime import datetime, date, timedelta
 _INITIALIZED = False
 
 
+def clean_env_value(value):
+    """Strips whitespace and any non-ASCII character from an env var value.
+
+    Credentials pasted through different UIs (PowerShell piping, a
+    dashboard's bulk .env import box, etc.) have repeatedly picked up
+    invisible characters -- a leading BOM, smart quotes, zero-width
+    spaces -- that survive a plain .strip() and corrupt the value just
+    enough to break urllib/http.client's latin-1 header encoding or a
+    URL scheme check. Every value this app reads this way (Turso URL/
+    token, Gmail address/app password, secret key) is always plain
+    ASCII, so stripping non-ASCII bytes outright is safe and catches
+    the whole class of corruption instead of one specific character.
+    """
+    if value is None:
+        return value
+    return value.encode("ascii", "ignore").decode("ascii").strip()
+
+
 def get_db_path():
     if os.environ.get("VERCEL"):
         return "/tmp/laparsmart.db"
@@ -26,13 +44,8 @@ def get_db():
     if turso_url:
         import turso_serverless
 
-        # Defensive: a stray leading BOM (﻿) from how the env var was
-        # set makes urllib reject the scheme ("unknown url type: ﻿libsql")
-        # since ﻿ isn't whitespace and .strip() alone won't remove it.
-        turso_url = turso_url.strip().lstrip("﻿")
-        auth_token = os.environ.get("TURSO_AUTH_TOKEN")
-        if auth_token:
-            auth_token = auth_token.strip().lstrip("﻿")
+        turso_url = clean_env_value(turso_url)
+        auth_token = clean_env_value(os.environ.get("TURSO_AUTH_TOKEN"))
 
         conn = turso_serverless.connect(turso_url, auth_token=auth_token)
         conn.row_factory = turso_serverless.Row

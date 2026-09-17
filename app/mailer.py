@@ -4,6 +4,8 @@ import warnings
 from email.mime.text import MIMEText
 from email.utils import formataddr
 
+from .db import clean_env_value
+
 
 def send_password_reset_email(to_email, admin_id, reset_url):
     """Sends the password reset link over Gmail SMTP (smtp.gmail.com:587,
@@ -11,15 +13,8 @@ def send_password_reset_email(to_email, admin_id, reset_url):
     Returns True on success, False otherwise -- callers should treat a
     False return as non-fatal (the request should not 500 just because
     an email couldn't be sent) but should log it."""
-    gmail_address = os.environ.get("GMAIL_ADDRESS")
-    gmail_app_password = os.environ.get("GMAIL_APP_PASSWORD")
-    if gmail_address:
-        # Defensive: a stray leading BOM (﻿) from how the env var was set
-        # (seen previously with TURSO_DATABASE_URL/TURSO_AUTH_TOKEN, see
-        # db.py) breaks smtplib's ascii-only SMTP command encoding.
-        gmail_address = gmail_address.strip().lstrip("﻿")
-    if gmail_app_password:
-        gmail_app_password = gmail_app_password.strip().lstrip("﻿")
+    gmail_address = clean_env_value(os.environ.get("GMAIL_ADDRESS"))
+    gmail_app_password = clean_env_value(os.environ.get("GMAIL_APP_PASSWORD"))
     if not gmail_address or not gmail_app_password:
         warnings.warn(
             "GMAIL_ADDRESS / GMAIL_APP_PASSWORD are not set: password reset "
