@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Review Order{% endblock %}
+{% block right_panel %}{% endblock %}
+{% block content %}
+<h2 class="fw-bold mb-3">Review Your Order</h2>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header"><h5 class="mb-0">Order Summary</h5></div>
+  <div class="card-body">
+    {% if package %}
+    <ul class="lapar-order-list mb-3">
+      <li><span>{{ package.name }} &times; {{ package_qty }} <span class="text-muted">({{ package.pax }} pax each)</span></span><span>RM {{ "%.2f"|format(total) }}</span></li>
+    </ul>
+    <p class="text-muted small mb-0"><i class="fa-solid fa-calendar-check me-1"></i>Meeting Room: {{ meeting_room }} &middot; Requested time: {{ meeting_time }}</p>
+    {% else %}
+    <ul class="lapar-order-list mb-3">
+      {% for it in cart_items %}
+      <li><span>{{ it.name }} &times; {{ it.quantity }}</span><span>RM {{ "%.2f"|format(it.subtotal) }}</span></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    <div class="d-flex justify-content-between fw-bold fs-5 border-top pt-3 mb-0">
+      <span>Total</span><span>RM {{ "%.2f"|format(total) }}</span>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header"><h5 class="mb-0">Your Details</h5></div>
+  <div class="card-body">
+    <p class="text-muted small">Required to place this order.</p>
+    <form method="post" action="{{ url_for('staff.place_order') }}" class="row g-3">
+      <input type="hidden" name="order_type" value="{{ order_type }}">
+      <input type="hidden" name="meeting_room" value="{{ meeting_room }}">
+      <input type="hidden" name="meeting_time" value="{{ meeting_time }}">
+      {% if package %}
+      <input type="hidden" name="package_id" value="{{ package_id }}">
+      <input type="hidden" name="package_qty" value="{{ package_qty }}">
+      {% else %}
+      {% for it in cart_items %}
+      <input type="hidden" name="item_id" value="{{ it.item_id }}">
+      <input type="hidden" name="quantity" value="{{ it.quantity }}">
+      {% endfor %}
+      {% endif %}
+
+      <div class="col-md-6">
+        <label class="form-label text-muted small">Staff ID</label>
+        <input type="text" name="staff_id" class="form-control" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label text-muted small">Staff Name</label>
+        <input type="text" name="staff_name" class="form-control" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label text-muted small">Department</label>
+        <input type="text" name="department" class="form-control" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label text-muted small">Phone Number</label>
+        <input type="tel" name="phone_number" class="form-control" required>
+      </div>
+      <div class="col-12 d-flex gap-2 mt-2">
+        <a href="{{ url_for('staff.menu') }}" class="btn btn-outline-primary btn-rounded"><i class="fa-solid fa-arrow-left me-2"></i>Back to Menu</a>
+        <button type="submit" class="btn btn-primary btn-rounded px-4"><i class="fa-solid fa-check me-2"></i>Confirm Order</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

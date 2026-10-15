@@ -30,13 +30,15 @@
     <div class="table-responsive">
       <table class="table table-hover mb-0">
         <thead>
-          <tr><th>#</th><th>Staff</th><th>Type</th><th>Total</th><th>Status</th><th>Time</th><th></th></tr>
+          <tr><th>#</th><th>Staff</th><th>Department</th><th>Phone</th><th>Type</th><th>Total</th><th>Status</th><th>Time</th><th></th></tr>
         </thead>
         <tbody>
           {% for o in orders %}
           <tr>
             <td>#{{ o.order_id }}</td>
             <td>{{ o.staff_name }} <span class="text-muted small">({{ o.staff_id }})</span></td>
+            <td>{{ o.department }}</td>
+            <td>{{ o.phone_number }}</td>
             <td>
               {{ o.order_type }}
               {% if o.order_type == "MeetingRoom" %}
@@ -63,7 +65,7 @@
             </td>
           </tr>
           {% else %}
-          <tr><td colspan="7" class="text-muted text-center py-4">No orders found.</td></tr>
+          <tr><td colspan="9" class="text-muted text-center py-4">No orders found.</td></tr>
           {% endfor %}
         </tbody>
       </table>

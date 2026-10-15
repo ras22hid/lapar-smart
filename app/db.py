@@ -98,6 +98,9 @@ CREATE TABLE IF NOT EXISTS menu_item (
 CREATE TABLE IF NOT EXISTS orders (
     order_id INTEGER PRIMARY KEY AUTOINCREMENT,
     staff_id TEXT NOT NULL,
+    staff_name TEXT,
+    department TEXT,
+    phone_number TEXT,
     order_type TEXT NOT NULL DEFAULT 'Counter',
     status TEXT NOT NULL DEFAULT 'Pending',
     total_amount REAL NOT NULL DEFAULT 0,
@@ -206,6 +209,18 @@ def init_db():
         conn.commit()
     except Exception:
         pass
+    # Migration for databases created before FAMA staff identified
+    # themselves per-order (Staff ID/Name/Department/Phone Number keyed
+    # in at the Review Order step) instead of being pre-registered by a
+    # Cafe Admin -- a fresh CREATE TABLE above already includes these
+    # columns, so this is a no-op there and only does real work on an
+    # older database.
+    for column in ("staff_name", "department", "phone_number"):
+        try:
+            conn.execute(f"ALTER TABLE orders ADD COLUMN {column} TEXT")
+            conn.commit()
+        except Exception:
+            pass
     row = conn.execute("SELECT COUNT(*) AS c FROM menu_item").fetchone()
     if row["c"] == 0:
         seed(conn)

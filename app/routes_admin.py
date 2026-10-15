@@ -249,7 +249,10 @@ def orders():
     type_filter = request.args.get("type", "All")
     status_filter = request.args.get("status", "All")
 
-    query = "SELECT o.*, s.name AS staff_name FROM orders o JOIN staff s ON s.staff_id = o.staff_id WHERE 1=1"
+    # staff_name/department/phone_number live on the order itself, captured
+    # at the Review Order step -- no join against a staff registry, since
+    # Cafe Admin no longer pre-registers FAMA staff.
+    query = "SELECT o.* FROM orders o WHERE 1=1"
     params = []
     if type_filter != "All":
         query += " AND o.order_type = ?"
@@ -273,42 +276,35 @@ def orders():
 @admin_bp.route("/users", methods=["GET", "POST"])
 @login_required
 def users():
-    """UC10: Manage Users."""
+    """Manage Cafe Admins. FAMA staff are not managed here -- they
+    identify themselves (Staff ID, Name, Department, Phone Number) per
+    order on the Review Order page instead of being pre-registered."""
     db = get_db()
     if request.method == "POST":
         action = request.form.get("action")
-        role_table = request.form.get("role_table", "staff")
-        table = "staff" if role_table == "staff" else "admin"
-        id_col = "staff_id" if table == "staff" else "admin_id"
 
         if action == "add":
             new_id = request.form["user_id"].strip()
             name = request.form["name"].strip()
-            extra = request.form.get("extra", "").strip()
-            if table == "staff":
-                db.execute(
-                    "INSERT INTO staff (staff_id, name, department, active) VALUES (?, ?, ?, 1)",
-                    (new_id, name, extra),
-                )
-            else:
-                email = request.form.get("email", "").strip() or None
-                db.execute(
-                    "INSERT INTO admin (admin_id, name, role, active, email) VALUES (?, ?, ?, 1, ?)",
-                    (new_id, name, extra, email),
-                )
+            role = request.form.get("extra", "").strip()
+            email = request.form.get("email", "").strip() or None
+            db.execute(
+                "INSERT INTO admin (admin_id, name, role, active, email) VALUES (?, ?, ?, 1, ?)",
+                (new_id, name, role, email),
+            )
             db.commit()
         elif action == "toggle":
             user_id = request.form["user_id"]
             db.execute(
-                f"UPDATE {table} SET active = 1 - active WHERE {id_col} = ?",
+                "UPDATE admin SET active = 1 - active WHERE admin_id = ?",
                 (user_id,),
             )
             db.commit()
         elif action == "set_email":
-            # Admin-only: lets a Cafe Admin put an email on file for any
-            # admin_id (including one seeded before this column existed),
-            # which is what admin.forgot_password() requires before it
-            # will ever send a reset link for that account.
+            # Lets a Cafe Admin put an email on file for any admin_id
+            # (including one seeded before this column existed), which is
+            # what admin.forgot_password() requires before it will ever
+            # send a reset link for that account.
             user_id = request.form["user_id"]
             email = request.form.get("email", "").strip() or None
             db.execute("UPDATE admin SET email = ? WHERE admin_id = ?", (email, user_id))
@@ -316,7 +312,6 @@ def users():
         db.close()
         return redirect(url_for("admin.users"))
 
-    staff_rows = db.execute("SELECT * FROM staff ORDER BY staff_id").fetchall()
     admin_rows = db.execute("SELECT * FROM admin ORDER BY admin_id").fetchall()
     db.close()
-    return render_template("admin_users.html", staff_rows=staff_rows, admin_rows=admin_rows)
+    return render_template("admin_users.html", admin_rows=admin_rows)

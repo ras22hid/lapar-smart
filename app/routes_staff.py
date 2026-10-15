@@ -32,8 +32,9 @@ def landing():
 
 @staff_bp.route("/menu")
 def menu():
-    """UC2: View Daily Menu."""
-    staff_id = request.args.get("staff_id", "S001")
+    """UC2: View Daily Menu. Browsing is anonymous -- staff only identify
+    themselves (Staff ID, Name, Department, Phone Number) at the Review
+    Order step after choosing what to order, not before."""
     db = get_db()
     # Not filtered by available_date: an item stays on the menu across days
     # once added, until the admin explicitly hides or deletes it (see
@@ -45,37 +46,102 @@ def menu():
     packages = db.execute(
         "SELECT * FROM catering_package WHERE is_available = 1 ORDER BY pax"
     ).fetchall()
-    my_orders = db.execute(
-        "SELECT * FROM orders WHERE staff_id = ? ORDER BY order_id DESC LIMIT 10",
-        (staff_id,),
-    ).fetchall()
     db.close()
+    return render_template("menu.html", items=items, packages=packages, today=today_str())
+
+
+@staff_bp.route("/order/review", methods=["POST"])
+def review_order():
+    """Intermediate step between choosing items and placing the order:
+    shows what's about to be ordered and collects Staff ID, Name,
+    Department, and Phone Number -- captured here, per order, rather
+    than looked up from a Cafe Admin-managed staff registry."""
+    order_type = request.form.get("order_type", "Counter")
+    meeting_room = request.form.get("meeting_room", "")
+    meeting_time = request.form.get("meeting_time", "")
+
+    db = get_db()
+
+    if order_type == "MeetingRoom":
+        package_id = request.form.get("package_id")
+        package_qty = int(request.form.get("package_qty") or 0)
+        package = None
+        if package_id:
+            package = db.execute(
+                "SELECT * FROM catering_package WHERE package_id = ?", (package_id,)
+            ).fetchone()
+        db.close()
+        if not package or package_qty <= 0:
+            return redirect(url_for("staff.menu", error="empty_cart"))
+        return render_template(
+            "review_order.html",
+            order_type=order_type,
+            meeting_room=meeting_room,
+            meeting_time=meeting_time,
+            package=package,
+            package_id=package_id,
+            package_qty=package_qty,
+            cart_items=None,
+            total=package["price"] * package_qty,
+        )
+
+    item_ids = request.form.getlist("item_id")
+    quantities = request.form.getlist("quantity")
+    cart_items = []
+    total = 0.0
+    for item_id, qty in zip(item_ids, quantities):
+        qty = int(qty)
+        if qty <= 0:
+            continue
+        row = db.execute("SELECT * FROM menu_item WHERE item_id = ?", (item_id,)).fetchone()
+        if row is None:
+            continue
+        subtotal = row["price"] * qty
+        total += subtotal
+        cart_items.append({"item_id": item_id, "name": row["name"], "quantity": qty, "subtotal": subtotal})
+    db.close()
+
+    if not cart_items:
+        return redirect(url_for("staff.menu", error="empty_cart"))
+
     return render_template(
-        "menu.html", items=items, packages=packages, staff_id=staff_id, today=today_str(), my_orders=my_orders
+        "review_order.html",
+        order_type=order_type,
+        meeting_room=meeting_room,
+        meeting_time=meeting_time,
+        package=None,
+        cart_items=cart_items,
+        total=total,
     )
 
 
 @staff_bp.route("/order", methods=["POST"])
 def place_order():
-    """UC3: Place Order (counter order) and UC4: Reserve Meeting Room Order (bulk catering package)."""
-    staff_id = request.form.get("staff_id", "S001").strip()
+    """UC3: Place Order (counter order) and UC4: Reserve Meeting Room Order
+    (bulk catering package) -- final submission from the Review Order page."""
+    staff_id = request.form.get("staff_id", "").strip()
+    staff_name = request.form.get("staff_name", "").strip()
+    department = request.form.get("department", "").strip()
+    phone_number = request.form.get("phone_number", "").strip()
     order_type = request.form.get("order_type", "Counter")
     meeting_room = request.form.get("meeting_room") or None
     meeting_time = request.form.get("meeting_time") or None
 
-    db = get_db()
+    if not staff_id or not staff_name or not department or not phone_number:
+        return redirect(url_for("staff.menu", error="missing_staff_info"))
 
-    # orders.staff_id is a foreign key to staff.staff_id: without this
-    # check, a blank or made-up Staff ID (the field has no server-side
-    # validation) reaches the INSERT below and raises a raw
-    # FOREIGN KEY constraint failed IntegrityError -- a 500 instead of a
-    # message telling the staff member what actually went wrong.
-    staff_row = db.execute(
-        "SELECT 1 FROM staff WHERE staff_id = ? AND active = 1", (staff_id,)
-    ).fetchone()
-    if staff_row is None:
-        db.close()
-        return redirect(url_for("staff.menu", staff_id=staff_id, error="invalid_staff"))
+    db = get_db()
+    # orders.staff_id is a foreign key to staff.staff_id, but Cafe Admin no
+    # longer pre-registers FAMA staff -- this upsert satisfies that FK
+    # transparently from whatever was just keyed in on the Review Order
+    # page, so no admin involvement is needed. The order row itself (not
+    # this table) is the record of who placed it: staff_name/department/
+    # phone_number are stored per-order below since a person's details
+    # are captured fresh each time rather than looked up.
+    db.execute(
+        "INSERT OR IGNORE INTO staff (staff_id, name, department, active) VALUES (?, ?, ?, 1)",
+        (staff_id, staff_name, department),
+    )
 
     if order_type == "MeetingRoom":
         package_id = request.form.get("package_id")
@@ -88,14 +154,26 @@ def place_order():
 
         if not package or package_qty <= 0:
             db.close()
-            return redirect(url_for("staff.menu", staff_id=staff_id, error="empty_cart"))
+            return redirect(url_for("staff.menu", error="empty_cart"))
 
         total = package["price"] * package_qty
         db.execute(
-            "INSERT INTO orders (staff_id, order_type, status, total_amount, order_date, "
-            "meeting_room, meeting_time, package_name, package_pax, package_qty) "
-            "VALUES (?, 'MeetingRoom', 'Pending', ?, ?, ?, ?, ?, ?, ?)",
-            (staff_id, total, now_str(), meeting_room, meeting_time, package["name"], package["pax"], package_qty),
+            "INSERT INTO orders (staff_id, staff_name, department, phone_number, order_type, status, "
+            "total_amount, order_date, meeting_room, meeting_time, package_name, package_pax, package_qty) "
+            "VALUES (?, ?, ?, ?, 'MeetingRoom', 'Pending', ?, ?, ?, ?, ?, ?, ?)",
+            (
+                staff_id,
+                staff_name,
+                department,
+                phone_number,
+                total,
+                now_str(),
+                meeting_room,
+                meeting_time,
+                package["name"],
+                package["pax"],
+                package_qty,
+            ),
         )
         order_id = db.execute("SELECT last_insert_rowid() AS id").fetchone()["id"]
         db.commit()
@@ -120,12 +198,12 @@ def place_order():
 
     if not cart:
         db.close()
-        return redirect(url_for("staff.menu", staff_id=staff_id, error="empty_cart"))
+        return redirect(url_for("staff.menu", error="empty_cart"))
 
     cur = db.execute(
-        "INSERT INTO orders (staff_id, order_type, status, total_amount, order_date, meeting_room, meeting_time) "
-        "VALUES (?, ?, 'Pending', ?, ?, ?, ?)",
-        (staff_id, order_type, total, now_str(), meeting_room, meeting_time),
+        "INSERT INTO orders (staff_id, staff_name, department, phone_number, order_type, status, "
+        "total_amount, order_date, meeting_room, meeting_time) VALUES (?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?)",
+        (staff_id, staff_name, department, phone_number, order_type, total, now_str(), meeting_room, meeting_time),
     )
     order_id = cur.lastrowid
     for item_id, qty, subtotal in cart:
