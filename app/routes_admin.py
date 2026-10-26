@@ -1,3 +1,4 @@
+import base64
 import secrets
 from functools import wraps
 
@@ -172,6 +173,40 @@ def dashboard():
     return redirect(url_for("admin.orders"))
 
 
+MAX_IMAGE_BYTES = 2 * 1024 * 1024
+
+
+def _read_food_image(field="image"):
+    """Returns (mime, base64_text) for an uploaded food photo, (None, None)
+    if no file was chosen, or raises ValueError(error_code). The type is
+    decided from the file's magic bytes, not the client-supplied filename or
+    Content-Type, so only real JPEG/PNG/WebP data is ever stored."""
+    upload = request.files.get(field)
+    if upload is None or not upload.filename:
+        return None, None
+    raw = upload.read(MAX_IMAGE_BYTES + 1)
+    if len(raw) > MAX_IMAGE_BYTES:
+        raise ValueError("image_too_large")
+    if raw.startswith(b"\xff\xd8\xff"):
+        mime = "image/jpeg"
+    elif raw.startswith(b"\x89PNG\r\n\x1a\n"):
+        mime = "image/png"
+    elif raw[:4] == b"RIFF" and raw[8:12] == b"WEBP":
+        mime = "image/webp"
+    else:
+        raise ValueError("bad_image")
+    return mime, base64.b64encode(raw).decode("ascii")
+
+
+def _save_food_image(db, item_id, mime, b64):
+    db.execute(
+        "INSERT INTO menu_item_image (item_id, mime, data, updated) VALUES (?, ?, ?, ?) "
+        "ON CONFLICT(item_id) DO UPDATE SET mime = excluded.mime, "
+        "data = excluded.data, updated = excluded.updated",
+        (item_id, mime, b64, now_str()),
+    )
+
+
 @admin_bp.route("/menu", methods=["GET", "POST"])
 @login_required
 def menu():
@@ -179,8 +214,14 @@ def menu():
     db = get_db()
     if request.method == "POST":
         action = request.form.get("action")
+        image_error = None
         if action == "add":
-            db.execute(
+            try:
+                mime, b64 = _read_food_image()
+            except ValueError as e:
+                mime = b64 = None
+                image_error = str(e)
+            cur = db.execute(
                 "INSERT INTO menu_item (name, price, category, available_date, is_available) "
                 "VALUES (?, ?, ?, ?, 1)",
                 (
@@ -189,6 +230,25 @@ def menu():
                     request.form["category"],
                     today_str(),
                 ),
+            )
+            if mime:
+                _save_food_image(db, cur.lastrowid, mime, b64)
+            db.commit()
+        elif action == "set_image":
+            try:
+                mime, b64 = _read_food_image()
+            except ValueError as e:
+                mime = b64 = None
+                image_error = str(e)
+            else:
+                if mime is None:
+                    image_error = "bad_image"
+            if mime:
+                _save_food_image(db, request.form["item_id"], mime, b64)
+                db.commit()
+        elif action == "remove_image":
+            db.execute(
+                "DELETE FROM menu_item_image WHERE item_id = ?", (request.form["item_id"],)
             )
             db.commit()
         elif action == "toggle":
@@ -212,15 +272,21 @@ def menu():
             if in_use:
                 db.close()
                 return redirect(url_for("admin.menu", error="item_in_use"))
+            db.execute("DELETE FROM menu_item_image WHERE item_id = ?", (item_id,))
             db.execute("DELETE FROM menu_item WHERE item_id = ?", (item_id,))
             db.commit()
         db.close()
+        if image_error:
+            return redirect(url_for("admin.menu", error=image_error))
         return redirect(url_for("admin.menu"))
 
     # Admin manages the whole catalog (shown and hidden alike), not just
-    # today's date -- see the matching note in staff.menu().
+    # today's date -- see the matching note in staff.menu(). The image blob
+    # itself is never selected here (only whether one exists, plus its
+    # timestamp for cache-busting); it's served by staff.menu_image.
     items = db.execute(
-        "SELECT * FROM menu_item ORDER BY category, name",
+        "SELECT m.*, (SELECT updated FROM menu_item_image i WHERE i.item_id = m.item_id) AS image_v "
+        "FROM menu_item m ORDER BY m.category, m.name",
     ).fetchall()
     db.close()
     return render_template(

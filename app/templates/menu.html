@@ -45,10 +45,14 @@
       <div class="col-6 col-md-4 lapar-item-card">
         <div class="card item-card shadow-sm">
           <div class="card-body p-0">
+            {% if item.image_v %}
+            <img class="dish-photo" src="{{ url_for('staff.menu_image', item_id=item.item_id, v=item.image_v) }}" alt="{{ item.name }}" loading="lazy">
+            {% else %}
             <div class="dish-icon-tile">
               {% set icon_set = drink_icons if cat == "Beverage" else food_icons %}
               <i class="fa-solid {{ icon_set[loop.index0 % icon_set|length] }}"></i>
             </div>
+            {% endif %}
             <div class="info">
               <h5 class="name">{{ item.name }}</h5>
               <h6 class="mb-0 price">RM {{ "%.2f"|format(item.price) }}</h6>

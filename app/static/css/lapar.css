@@ -462,6 +462,16 @@ body.lapar-body .lapar-footer {
   color: var(--lapar-cream);
   font-size: 2.4rem;
 }
+.dish-photo {
+  display: block; width: 100%; height: 110px; object-fit: cover;
+}
+.admin-dish-thumb {
+  width: 56px; height: 56px; object-fit: cover; border-radius: 8px;
+}
+.admin-dish-thumb-empty {
+  width: 56px; height: 56px; border-radius: 8px; background: #eee; color: #aaa;
+  display: flex; align-items: center; justify-content: center;
+}
 .lapar-qty-row {
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 15px 15px;

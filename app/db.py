@@ -95,6 +95,14 @@ CREATE TABLE IF NOT EXISTS menu_item (
     is_available INTEGER NOT NULL DEFAULT 1
 );
 
+CREATE TABLE IF NOT EXISTS menu_item_image (
+    item_id INTEGER PRIMARY KEY,
+    mime TEXT NOT NULL,
+    data TEXT NOT NULL,
+    updated TEXT NOT NULL,
+    FOREIGN KEY (item_id) REFERENCES menu_item (item_id)
+);
+
 CREATE TABLE IF NOT EXISTS orders (
     order_id INTEGER PRIMARY KEY AUTOINCREMENT,
     staff_id TEXT NOT NULL,

@@ -1,7 +1,7 @@
 import io
 import base64
 
-from flask import Blueprint, render_template, request, redirect, url_for, jsonify
+from flask import Blueprint, Response, abort, render_template, request, redirect, url_for, jsonify
 
 from .db import get_db, now_str, today_str
 
@@ -41,13 +41,32 @@ def menu():
     # admin.menu() below) -- available_date is only a "date added" record,
     # not an expiry, so the menu doesn't silently go empty every midnight.
     items = db.execute(
-        "SELECT * FROM menu_item WHERE is_available = 1 ORDER BY category, name",
+        "SELECT m.*, (SELECT updated FROM menu_item_image i WHERE i.item_id = m.item_id) AS image_v "
+        "FROM menu_item m WHERE m.is_available = 1 ORDER BY m.category, m.name",
     ).fetchall()
     packages = db.execute(
         "SELECT * FROM catering_package WHERE is_available = 1 ORDER BY pax"
     ).fetchall()
     db.close()
     return render_template("menu.html", items=items, packages=packages, today=today_str())
+
+
+@staff_bp.route("/menu/image/<int:item_id>")
+def menu_image(item_id):
+    """Serves the food photo a Cafe Admin uploaded for a menu item. Stored in
+    the database (not on disk) because Vercel's filesystem is ephemeral. The
+    template appends ?v=<updated> so a replaced photo busts the cache."""
+    db = get_db()
+    row = db.execute(
+        "SELECT mime, data FROM menu_item_image WHERE item_id = ?", (item_id,)
+    ).fetchone()
+    db.close()
+    if row is None:
+        abort(404)
+    resp = Response(base64.b64decode(row["data"]), mimetype=row["mime"])
+    resp.headers["Cache-Control"] = "public, max-age=86400"
+    resp.headers["X-Content-Type-Options"] = "nosniff"
+    return resp
 
 
 @staff_bp.route("/order/review", methods=["POST"])

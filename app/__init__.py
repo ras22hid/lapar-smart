@@ -30,6 +30,15 @@ def create_app():
                 RuntimeWarning,
             )
     app.secret_key = secret_key
+    # Vercel rejects request bodies over ~4.5 MB; stay just under that so an
+    # oversized food photo gets our friendly error instead of a platform 413.
+    app.config["MAX_CONTENT_LENGTH"] = 4 * 1024 * 1024
+
+    @app.errorhandler(413)
+    def too_large(_e):
+        from flask import redirect, url_for
+
+        return redirect(url_for("admin.menu", error="image_too_large"))
 
     with app.app_context():
         init_db()
