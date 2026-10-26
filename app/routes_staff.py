@@ -1,11 +1,49 @@
 import io
 import base64
 
-from flask import Blueprint, Response, abort, render_template, request, redirect, url_for, jsonify
+from flask import Blueprint, Response, abort, current_app, render_template, request, redirect, url_for, jsonify
+from itsdangerous import BadSignature, URLSafeSerializer
 
 from .db import get_db, now_str, today_str
 
 staff_bp = Blueprint("staff", __name__)
+
+ORDERS_COOKIE = "lapar_orders"
+ORDERS_COOKIE_MAX_AGE = 30 * 24 * 3600
+MAX_REMEMBERED_ORDERS = 10
+
+
+def _orders_serializer():
+    return URLSafeSerializer(current_app.secret_key, salt="lapar-recent-orders")
+
+
+def recent_order_ids():
+    """Order IDs placed from this browser, read from a signed cookie. Staff
+    no longer type a Staff ID on the menu page, so this is how the menu's
+    Order Status / Order History panel knows which orders are 'theirs'. The
+    cookie is signed so it can't be edited to list someone else's orders."""
+    raw = request.cookies.get(ORDERS_COOKIE)
+    if not raw:
+        return []
+    try:
+        ids = _orders_serializer().loads(raw)
+    except BadSignature:
+        return []
+    return [i for i in ids if isinstance(i, int)][:MAX_REMEMBERED_ORDERS]
+
+
+def redirect_to_order_status(order_id, staff_id):
+    resp = redirect(url_for("staff.order_status", order_id=order_id, staff_id=staff_id))
+    ids = [order_id] + [i for i in recent_order_ids() if i != order_id]
+    resp.set_cookie(
+        ORDERS_COOKIE,
+        _orders_serializer().dumps(ids[:MAX_REMEMBERED_ORDERS]),
+        max_age=ORDERS_COOKIE_MAX_AGE,
+        httponly=True,
+        samesite="Lax",
+        secure=request.is_secure,
+    )
+    return resp
 
 
 def qr_data_uri(target_url):
@@ -47,8 +85,18 @@ def menu():
     packages = db.execute(
         "SELECT * FROM catering_package WHERE is_available = 1 ORDER BY pax"
     ).fetchall()
+    my_orders = []
+    order_ids = recent_order_ids()
+    if order_ids:
+        placeholders = ",".join("?" * len(order_ids))
+        my_orders = db.execute(
+            f"SELECT * FROM orders WHERE order_id IN ({placeholders}) ORDER BY order_id DESC",
+            order_ids,
+        ).fetchall()
     db.close()
-    return render_template("menu.html", items=items, packages=packages, today=today_str())
+    return render_template(
+        "menu.html", items=items, packages=packages, today=today_str(), my_orders=my_orders
+    )
 
 
 @staff_bp.route("/menu/image/<int:item_id>")
@@ -197,7 +245,7 @@ def place_order():
         order_id = db.execute("SELECT last_insert_rowid() AS id").fetchone()["id"]
         db.commit()
         db.close()
-        return redirect(url_for("staff.order_status", order_id=order_id, staff_id=staff_id))
+        return redirect_to_order_status(order_id, staff_id)
 
     item_ids = request.form.getlist("item_id")
     quantities = request.form.getlist("quantity")
@@ -232,7 +280,7 @@ def place_order():
         )
     db.commit()
     db.close()
-    return redirect(url_for("staff.order_status", order_id=order_id, staff_id=staff_id))
+    return redirect_to_order_status(order_id, staff_id)
 
 
 @staff_bp.route("/order/<int:order_id>/status")
