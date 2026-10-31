@@ -5,5 +5,6 @@
   "routes": [
     { "src": "/static/(.*)", "dest": "api/index.py" },
     { "src": "/(.*)", "dest": "api/index.py" }
-  ]
+  ],
+  "regions": ["bom1"]
 }

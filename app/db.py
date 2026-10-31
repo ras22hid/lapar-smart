@@ -32,6 +32,51 @@ def get_db_path():
     return os.path.join(instance_dir, "laparsmart.db")
 
 
+def _lean_connection_class():
+    """turso_serverless sends every statement as its own HTTPS request over a
+    brand-new TCP/TLS connection (urllib, no keep-alive), so each avoidable
+    request costs a full handshake -- roughly 0.7 s when the function and the
+    database are on different continents. Two requests the stock connection
+    makes on every page load are not needed for reads:
+
+    * `PRAGMA foreign_keys = ON` right after connecting -- only writes need
+      foreign keys enforced, so it is now sent just before the first write.
+    * the stream `close` on `conn.close()` -- Turso expires idle streams by
+      itself; it is still sent when a transaction is open, so uncommitted
+      work is rolled back immediately and never holds the write lock.
+    """
+    from turso_serverless.connection import Connection
+    from turso_serverless.dbapi import _is_dml
+
+    class LeanConnection(Connection):
+        _foreign_keys_on = False
+
+        def _maybe_implicit_begin(self, sql):
+            if self._session._baton is None:
+                self._foreign_keys_on = False
+            if not self._foreign_keys_on and not self.in_transaction and _is_dml(sql):
+                try:
+                    self._execute_stmt("PRAGMA foreign_keys = ON", want_rows=False)
+                except Exception:
+                    pass
+                self._foreign_keys_on = True
+            super()._maybe_implicit_begin(sql)
+
+        def close(self):
+            if self._closed:
+                return
+            if self.in_transaction:
+                super().close()
+            else:
+                self._session._reset_stream()
+                self._closed = True
+
+    return LeanConnection
+
+
+_LEAN = None
+
+
 def get_db():
     """Returns a DB-API connection. When TURSO_DATABASE_URL is set (always
     the case in production, since Vercel's /tmp is wiped per instance and
@@ -43,16 +88,16 @@ def get_db():
     turso_url = os.environ.get("TURSO_DATABASE_URL")
     if turso_url:
         import turso_serverless
+        from turso_serverless.session import Session
 
         turso_url = clean_env_value(turso_url)
         auth_token = clean_env_value(os.environ.get("TURSO_AUTH_TOKEN"))
 
-        conn = turso_serverless.connect(turso_url, auth_token=auth_token)
+        global _LEAN
+        if _LEAN is None:
+            _LEAN = _lean_connection_class()
+        conn = _LEAN(Session(turso_url, auth_token=auth_token))
         conn.row_factory = turso_serverless.Row
-        try:
-            conn.execute("PRAGMA foreign_keys = ON")
-        except Exception:
-            pass
         return conn
 
     conn = sqlite3.connect(get_db_path())
