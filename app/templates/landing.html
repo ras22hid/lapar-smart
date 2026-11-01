@@ -1,17 +1,56 @@
 {% extends "base.html" %}
 {% block title %}Scan to Order{% endblock %}
+{% block right_panel %}{% endblock %}
 {% block content %}
-<div class="text-center lapar-hero">
-  <h2 class="fw-bold">Scan &amp; Order at Lazaria Cafe</h2>
-  <p class="text-muted">Scan the QR code below with your phone camera to open today's menu.</p>
+<section class="lapar-landing">
+  <div class="row align-items-center g-4 g-xl-5">
+    <div class="col-xl-7">
+      <span class="lapar-landing-eyebrow"><i class="fa-solid fa-mug-hot me-2"></i>Lazaria Cafe &middot; FAMA</span>
+      <h1 class="lapar-landing-title">Lapar <span class="lapar-landing-accent">Smart</span><br>Scan, Order &amp; Enjoy</h1>
+      <p class="lapar-landing-lead">
+        Skip the counter queue. Scan the QR code with your phone camera, choose from today's menu,
+        and get an alert on your phone when your order is ready for collection.
+      </p>
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        <a href="{{ url_for('staff.menu') }}" class="btn btn-primary btn-rounded px-4"><i class="fa-solid fa-utensils me-2"></i>View Menu</a>
+        <a href="{{ url_for('staff.menu') }}#meeting" class="btn btn-outline-light btn-rounded px-4"><i class="fa-solid fa-calendar-check me-2"></i>Meeting Room Catering</a>
+      </div>
 
-  {% if qr_uri %}
-  <div class="mb-2">
-    <div class="lapar-qr-box">
-      <img src="{{ qr_uri }}" alt="QR code to Lapar Smart menu" width="220" height="220">
+      {% if qr_uri %}
+      <div class="lapar-landing-scan">
+        <div class="lapar-phone">
+          <img src="{{ qr_uri }}" alt="QR code to Lapar Smart menu" width="150" height="150">
+        </div>
+        <div>
+          <div class="lapar-landing-scan-title">Scan to open today's menu</div>
+          <div class="lapar-landing-scan-sub"><i class="fa-solid fa-qrcode me-1"></i> UC1 &middot; Scan QR Code</div>
+        </div>
+      </div>
+      {% endif %}
     </div>
-    <p class="text-muted small mt-2"><i class="fa-solid fa-qrcode"></i> UC1 &middot; Scan QR Code</p>
+
+    <div class="col-xl-5">
+      {% if picks %}
+      <div class="lapar-picks-title">Today's picks</div>
+      <div class="lapar-picks">
+        {% for p in picks %}
+        <a href="{{ url_for('staff.menu') }}" class="lapar-pick">
+          {% if p.image_v %}
+          <img class="lapar-pick-img" src="{{ url_for('staff.menu_image', item_id=p.item_id, v=p.image_v) }}" alt="{{ p.name }}" loading="lazy">
+          {% else %}
+          <div class="lapar-pick-img lapar-pick-icon"><i class="fa-solid {{ 'fa-mug-hot' if p.category == 'Beverage' else 'fa-bowl-food' }}"></i></div>
+          {% endif %}
+          <div class="lapar-pick-body">
+            <span class="lapar-pick-tag">{{ p.category }}</span>
+            <div class="lapar-pick-name">{{ p.name }}</div>
+            <div class="lapar-pick-price">RM {{ '%.2f'|format(p.price) }}</div>
+          </div>
+          <span class="btn btn-primary btn-sm btn-rounded lapar-pick-btn">Order Now</span>
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
   </div>
-  {% endif %}
-</div>
+</section>
 {% endblock %}

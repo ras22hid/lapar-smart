@@ -65,7 +65,21 @@ def landing():
     """UC1: Scan QR Code - landing page that a physical QR code points to."""
     menu_url = request.host_url.rstrip("/") + url_for("staff.menu")
     qr_uri = qr_data_uri(menu_url)
-    return render_template("landing.html", qr_uri=qr_uri, menu_url=menu_url)
+    # A few dishes to tease on the hero (photos first). The QR code is the
+    # point of this page, so a database hiccup must never take it down.
+    picks = []
+    try:
+        db = get_db()
+        picks = db.execute(
+            "SELECT m.item_id, m.name, m.price, m.category, "
+            "(SELECT updated FROM menu_item_image i WHERE i.item_id = m.item_id) AS image_v "
+            "FROM menu_item m WHERE m.is_available = 1 "
+            "ORDER BY (image_v IS NULL), m.category, m.name LIMIT 3"
+        ).fetchall()
+        db.close()
+    except Exception:
+        picks = []
+    return render_template("landing.html", qr_uri=qr_uri, menu_url=menu_url, picks=picks)
 
 
 @staff_bp.route("/menu")
