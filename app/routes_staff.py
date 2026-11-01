@@ -1,5 +1,6 @@
 import io
 import base64
+import random
 
 from flask import Blueprint, Response, abort, current_app, render_template, request, redirect, url_for, jsonify
 from itsdangerous import BadSignature, URLSafeSerializer
@@ -65,21 +66,38 @@ def landing():
     """UC1: Scan QR Code - landing page that a physical QR code points to."""
     menu_url = request.host_url.rstrip("/") + url_for("staff.menu")
     qr_uri = qr_data_uri(menu_url)
-    # A few dishes to tease on the hero (photos first). The QR code is the
-    # point of this page, so a database hiccup must never take it down.
-    picks = []
+    # The QR code is the point of this page, so a database hiccup must never
+    # take it down.
     try:
         db = get_db()
-        picks = db.execute(
-            "SELECT m.item_id, m.name, m.price, m.category, "
+        rows = db.execute(
+            "SELECT m.item_id, m.name, m.price, m.category, m.available_date, "
             "(SELECT updated FROM menu_item_image i WHERE i.item_id = m.item_id) AS image_v "
-            "FROM menu_item m WHERE m.is_available = 1 "
-            "ORDER BY (image_v IS NULL), m.category, m.name LIMIT 3"
+            "FROM menu_item m WHERE m.is_available = 1"
         ).fetchall()
         db.close()
+        picks = todays_picks(rows)
     except Exception:
         picks = []
     return render_template("landing.html", qr_uri=qr_uri, menu_url=menu_url, picks=picks)
+
+
+def todays_picks(rows, count=3):
+    """Pick the dishes teased on the homepage from the live daily menu.
+    Whatever the Cafe Admin added most recently comes first, so a freshly
+    updated menu shows up straight away; any remaining slots are filled from
+    the rest of the available items. Within each group the order is shuffled
+    with today's date as the seed, so the picks change every day but stay
+    stable for everyone looking on the same day."""
+    rng = random.Random(today_str())
+    newest = max((r["available_date"] for r in rows), default=None)
+    fresh = [r for r in rows if r["available_date"] == newest]
+    rest = [r for r in rows if r["available_date"] != newest]
+    # Sort first so the seeded shuffle doesn't depend on database row order.
+    for group in (fresh, rest):
+        group.sort(key=lambda r: r["item_id"])
+        rng.shuffle(group)
+    return (fresh + rest)[:count]
 
 
 @staff_bp.route("/menu")

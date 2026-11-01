@@ -453,13 +453,10 @@ body.lapar-body .lapar-footer {
 
 /* ---------------- Landing hero (dark coffee banner) ----------------
    Uses the Bootstrap grid (row/col-lg-*) for layout; only colours,
-   type and the dish cards are custom. The right-hand panel is dropped on
-   this page so the hero gets the full width. */
-.lapar-shell:has(.lapar-landing) { grid-template-columns: 190px minmax(0, 1fr); }
-.lapar-shell:has(.lapar-landing) .lapar-panel-right { display: none; }
-@media only screen and (max-width: 991px) {
-  .lapar-shell:has(.lapar-landing) { grid-template-columns: 1fr; }
-}
+   type and the dish cards are custom. Both side panels are dropped on
+   this page (landing.html empties their blocks) so the hero gets the
+   full width. */
+.lapar-shell:has(.lapar-landing) { grid-template-columns: minmax(0, 1fr); }
 .lapar-container:has(.lapar-landing) { max-width: none; }
 
 .lapar-landing {

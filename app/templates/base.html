@@ -21,6 +21,7 @@
 
     <div class="lapar-page-body">
       <div class="lapar-shell">
+        {% block left_panel %}
         <aside class="lapar-panel lapar-panel-left">
           <div class="lapar-panel-title">Menu</div>
           <nav class="lapar-side-nav">
@@ -29,6 +30,7 @@
             <a href="{{ url_for('admin.login') }}"><i class="fa-solid fa-user-shield"></i><span>Cafe Admin</span></a>
           </nav>
         </aside>
+        {% endblock %}
 
         <main class="lapar-panel-center">
           <div class="lapar-container">

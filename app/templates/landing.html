@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Scan to Order{% endblock %}
+{% block left_panel %}{% endblock %}
 {% block right_panel %}{% endblock %}
 {% block content %}
 <section class="lapar-landing">
@@ -13,7 +14,7 @@
       </p>
       <div class="d-flex flex-wrap gap-2 mb-4">
         <a href="{{ url_for('staff.menu') }}" class="btn btn-primary btn-rounded px-4"><i class="fa-solid fa-utensils me-2"></i>View Menu</a>
-        <a href="{{ url_for('staff.menu') }}#meeting" class="btn btn-outline-light btn-rounded px-4"><i class="fa-solid fa-calendar-check me-2"></i>Meeting Room Catering</a>
+        <a href="{{ url_for('admin.login') }}" class="btn btn-outline-light btn-rounded px-4"><i class="fa-solid fa-user-shield me-2"></i>Cafe Admin</a>
       </div>
 
       {% if qr_uri %}
