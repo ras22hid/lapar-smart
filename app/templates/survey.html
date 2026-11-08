@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Staff Survey{% endblock %}
+{% block left_panel %}{% endblock %}
+{% block right_panel %}{% endblock %}
+{% block content %}
+<div class="lapar-single">
+<h2 class="fw-bold mb-1">Lazaria Cafe Ordering Survey</h2>
+<p class="text-muted mb-4">For FAMA staff who buy from Lazaria Cafe. Five questions, about one minute. Your answers are anonymous: no name or Staff ID is collected.</p>
+
+{% if error %}
+<div class="alert alert-danger" role="alert"><i class="fa-solid fa-circle-exclamation me-2"></i>Please answer every question before submitting.</div>
+{% endif %}
+
+<form method="post" action="{{ url_for('staff.survey') }}">
+  {% for q in questions %}
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <fieldset>
+        <legend class="fs-6 fw-bold mb-3">{{ loop.index }}. {{ q.text }}</legend>
+        {% for o in q.options %}
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="radio" name="{{ q.key }}" id="{{ q.key }}_{{ loop.index }}" value="{{ o }}" {{ 'checked' if answers.get(q.key) == o }} required>
+          <label class="form-check-label" for="{{ q.key }}_{{ loop.index }}">{{ o }}</label>
+        </div>
+        {% endfor %}
+      </fieldset>
+    </div>
+  </div>
+  {% endfor %}
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('staff.landing') }}" class="btn btn-outline-primary btn-rounded"><i class="fa-solid fa-arrow-left me-2"></i>Back</a>
+    <button type="submit" class="btn btn-primary btn-rounded px-4"><i class="fa-solid fa-paper-plane me-2"></i>Submit Survey</button>
+  </div>
+</form>
+</div>
+{% endblock %}

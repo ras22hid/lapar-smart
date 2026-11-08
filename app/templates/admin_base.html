@@ -59,6 +59,12 @@
               <span class="nav-text">Menu</span>
             </a>
           </li>
+          <li class="{{ 'mm-active' if request.endpoint == 'admin.survey' }}">
+            <a href="{{ url_for('admin.survey') }}" class="ai-icon">
+              <i class="fa-solid fa-clipboard-list"></i>
+              <span class="nav-text">Survey</span>
+            </a>
+          </li>
           <li class="{{ 'mm-active' if request.endpoint == 'admin.users' }}">
             <a href="{{ url_for('admin.users') }}" class="ai-icon">
               <i class="fa-solid fa-user-shield"></i>

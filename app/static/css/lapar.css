@@ -459,6 +459,29 @@ body.lapar-body .lapar-footer {
 .lapar-shell:has(.lapar-landing) { grid-template-columns: minmax(0, 1fr); }
 .lapar-container:has(.lapar-landing) { max-width: none; }
 
+/* Survey pages empty both side panels, so the shell collapses to one column. */
+.lapar-shell:has(.lapar-single) { grid-template-columns: minmax(0, 1fr); }
+
+/* Admin survey results (on the brown cards) */
+.lapar-note {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: var(--lapar-cream-text);
+}
+.lapar-survey-table thead th { color: var(--lapar-cream-text); border-color: rgba(255, 255, 255, 0.25); }
+.lapar-survey-table > :not(caption) > * > * { border-color: rgba(255, 255, 255, 0.15); }
+.card a.lapar-link { color: var(--lapar-cream); text-decoration: underline; }
+.lapar-landing-survey {
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  color: #e9d6ab;
+  font-size: .9rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.lapar-landing-survey:hover { color: #fff; }
+
 .lapar-landing {
   position: relative;
   overflow: hidden;

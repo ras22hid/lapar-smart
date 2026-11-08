@@ -6,6 +6,7 @@ from flask import Blueprint, Response, abort, current_app, render_template, requ
 from itsdangerous import BadSignature, URLSafeSerializer
 
 from .db import get_db, now_str, today_str
+from .survey import QUESTIONS
 
 staff_bp = Blueprint("staff", __name__)
 
@@ -98,6 +99,41 @@ def todays_picks(rows, count=3):
         group.sort(key=lambda r: r["item_id"])
         rng.shuffle(group)
     return (fresh + rest)[:count]
+
+
+SURVEY_COOKIE = "lapar_survey"
+
+
+@staff_bp.route("/survey", methods=["GET", "POST"])
+def survey():
+    """Anonymous FAMA staff questionnaire (report Section 3.2.1). No name or
+    Staff ID is collected. A cookie stops the same browser submitting twice,
+    which is a courtesy rather than a guarantee."""
+    if request.method == "POST":
+        if request.cookies.get(SURVEY_COOKIE):
+            return redirect(url_for("staff.survey_thanks"))
+        answers = {q["key"]: request.form.get(q["key"], "") for q in QUESTIONS}
+        if any(answers[q["key"]] not in q["options"] for q in QUESTIONS):
+            return render_template("survey.html", questions=QUESTIONS, answers=answers, error=True), 400
+        db = get_db()
+        db.execute(
+            "INSERT INTO survey_response (submitted_at, q1, q2, q3, q4, q5) VALUES (?, ?, ?, ?, ?, ?)",
+            (now_str(), *(answers[q["key"]] for q in QUESTIONS)),
+        )
+        db.commit()
+        db.close()
+        resp = redirect(url_for("staff.survey_thanks"))
+        resp.set_cookie(
+            SURVEY_COOKIE, "1", max_age=ORDERS_COOKIE_MAX_AGE, httponly=True,
+            samesite="Lax", secure=request.is_secure,
+        )
+        return resp
+    return render_template("survey.html", questions=QUESTIONS, answers={}, error=False)
+
+
+@staff_bp.route("/survey/thanks")
+def survey_thanks():
+    return render_template("survey_thanks.html")
 
 
 @staff_bp.route("/menu")

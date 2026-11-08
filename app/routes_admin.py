@@ -1,9 +1,12 @@
 import base64
+import csv
+import io
 import secrets
 from functools import wraps
 
 from flask import (
     Blueprint,
+    Response,
     render_template,
     request,
     redirect,
@@ -14,6 +17,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from .db import get_db, now_str, today_str, future_str
 from .mailer import send_password_reset_email
+from .survey import QUESTIONS, summary_sentences, tally
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -337,6 +341,48 @@ def orders():
         type_filter=type_filter,
         status_filter=status_filter,
     )
+
+
+@admin_bp.route("/survey")
+@login_required
+def survey():
+    """Questionnaire results, laid out like Table 3.1 of the report."""
+    db = get_db()
+    rows = db.execute("SELECT * FROM survey_response ORDER BY response_id").fetchall()
+    db.close()
+    total, questions = tally(rows)
+    return render_template(
+        "admin_survey.html", total=total, questions=questions, text=summary_sentences(rows),
+        cleared=request.args.get("cleared"),
+    )
+
+
+@admin_bp.route("/survey/export.csv")
+@login_required
+def survey_export():
+    db = get_db()
+    rows = db.execute("SELECT * FROM survey_response ORDER BY response_id").fetchall()
+    db.close()
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["response_id", "submitted_at"] + [q["key"] for q in QUESTIONS])
+    for r in rows:
+        writer.writerow([r["response_id"], r["submitted_at"]] + [r[q["key"]] for q in QUESTIONS])
+    return Response(
+        buf.getvalue(), mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=lapar-survey-responses.csv"},
+    )
+
+
+@admin_bp.route("/survey/clear", methods=["POST"])
+@login_required
+def survey_clear():
+    """Wipes every response, e.g. test submissions before real collection."""
+    db = get_db()
+    db.execute("DELETE FROM survey_response")
+    db.commit()
+    db.close()
+    return redirect(url_for("admin.survey", cleared=1))
 
 
 @admin_bp.route("/users", methods=["GET", "POST"])

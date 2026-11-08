@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Thank You{% endblock %}
+{% block left_panel %}{% endblock %}
+{% block right_panel %}{% endblock %}
+{% block content %}
+<div class="card shadow-sm text-center lapar-single">
+  <div class="card-body py-5">
+    <i class="fa-solid fa-circle-check text-success mb-3" style="font-size:3rem"></i>
+    <h2 class="fw-bold">Thank you!</h2>
+    <p class="text-muted mb-4">Your answers have been recorded.</p>
+    <a href="{{ url_for('staff.menu') }}" class="btn btn-primary btn-rounded px-4"><i class="fa-solid fa-utensils me-2"></i>View Menu</a>
+  </div>
+</div>
+{% endblock %}

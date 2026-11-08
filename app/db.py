@@ -193,6 +193,16 @@ CREATE TABLE IF NOT EXISTS notification (
     is_read INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (order_id) REFERENCES orders (order_id)
 );
+
+CREATE TABLE IF NOT EXISTS survey_response (
+    response_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    submitted_at TEXT NOT NULL,
+    q1 TEXT NOT NULL,
+    q2 TEXT NOT NULL,
+    q3 TEXT NOT NULL,
+    q4 TEXT NOT NULL,
+    q5 TEXT NOT NULL
+);
 """
 
 

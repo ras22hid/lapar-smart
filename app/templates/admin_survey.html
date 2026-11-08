@@ -1,0 +1,61 @@
+{% extends "admin_base.html" %}
+{% block title %}Survey{% endblock %}
+{% block page_title %}<i class="fa-solid fa-clipboard-list me-2 text-primary"></i>Staff Survey Results{% endblock %}
+{% block content %}
+{% if cleared %}
+<div class="alert alert-success">All survey responses were deleted.</div>
+{% endif %}
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div>
+      <div class="fs-3 fw-bold">{{ total }} <span class="fs-6 fw-normal text-muted">respondent{{ '' if total == 1 else 's' }} (N)</span></div>
+      <div class="text-muted small">Staff fill in the form at <a href="{{ url_for('staff.survey') }}" target="_blank" class="lapar-link">{{ url_for('staff.survey', _external=True) }}</a>. Answers are anonymous.</div>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('admin.survey_export') }}" class="btn btn-primary btn-sm btn-rounded {{ 'disabled' if not total }}"><i class="fa-solid fa-file-csv me-1"></i>Export CSV</a>
+      <form method="post" action="{{ url_for('admin.survey_clear') }}" onsubmit="return confirm('Delete all {{ total }} survey responses? This cannot be undone.');">
+        <button type="submit" class="btn btn-outline-danger btn-sm btn-rounded" {{ 'disabled' if not total }}><i class="fa-solid fa-trash me-1"></i>Delete all</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% if total %}
+<div class="card shadow-sm mb-4">
+  <div class="card-header"><h5 class="mb-0">Text for the report</h5></div>
+  <div class="card-body">
+    <p class="text-muted small">Written from the recorded answers only. Paste into Section 2.1 and under Table 3.1.</p>
+    <label class="form-label fw-bold small">Section 2.1 (problem statement evidence)</label>
+    <p class="lapar-note p-3" id="txtEvidence">{{ text.evidence }}</p>
+    <label class="form-label fw-bold small">Under Table 3.1 (summary)</label>
+    <p class="lapar-note p-3 mb-0" id="txtFindings">{{ text.findings }}</p>
+  </div>
+</div>
+{% endif %}
+
+<div class="card shadow-sm">
+  <div class="card-header"><h5 class="mb-0">Table 3.1 &middot; Responses to the questionnaire</h5></div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table lapar-survey-table mb-0">
+        <thead><tr><th>Question</th><th>Answer</th><th class="text-end">Number of respondents</th><th class="text-end">Percentage</th></tr></thead>
+        <tbody>
+          {% for q in questions %}
+          {% set qnum = loop.index %}
+          {% for r in q.rows %}
+          <tr>
+            {% if loop.first %}<td rowspan="{{ q.rows|length }}" class="fw-bold" style="max-width:320px">{{ qnum }}. {{ q.text }}</td>{% endif %}
+            <td>{{ r.label }}</td>
+            <td class="text-end">{{ r.count }}</td>
+            <td class="text-end">{{ '%.1f'|format(r.pct) }} %</td>
+          </tr>
+          {% endfor %}
+          {% endfor %}
+          <tr class="fw-bold"><td>Total respondents (N)</td><td></td><td class="text-end">{{ total }}</td><td class="text-end">100 %</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
