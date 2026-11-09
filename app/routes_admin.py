@@ -305,6 +305,18 @@ def orders():
     db = get_db()
     if request.method == "POST":
         order_id = request.form["order_id"]
+        if request.form.get("action") == "delete":
+            # Only a Completed order (already paid at the counter) may be
+            # deleted; the check is repeated here because the button is
+            # only hidden, not blocked, in the template for other statuses.
+            row = db.execute("SELECT status FROM orders WHERE order_id = ?", (order_id,)).fetchone()
+            if row is not None and row["status"] == "Completed":
+                db.execute("DELETE FROM notification WHERE order_id = ?", (order_id,))
+                db.execute("DELETE FROM order_item WHERE order_id = ?", (order_id,))
+                db.execute("DELETE FROM orders WHERE order_id = ?", (order_id,))
+                db.commit()
+            db.close()
+            return redirect(url_for("admin.orders"))
         new_status = request.form["new_status"]
         db.execute("UPDATE orders SET status = ? WHERE order_id = ?", (new_status, order_id))
         if new_status == "Ready":
