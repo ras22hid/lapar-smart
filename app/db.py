@@ -156,6 +156,7 @@ CREATE TABLE IF NOT EXISTS orders (
     staff_name TEXT,
     department TEXT,
     phone_number TEXT,
+    email TEXT,
     order_type TEXT NOT NULL DEFAULT 'Counter',
     status TEXT NOT NULL DEFAULT 'Pending',
     total_amount REAL NOT NULL DEFAULT 0,
@@ -306,7 +307,8 @@ def init_db():
     # Cafe Admin -- a fresh CREATE TABLE above already includes these
     # columns, so this is a no-op there and only does real work on an
     # older database.
-    for column in ("staff_name", "department", "phone_number"):
+    # `email` is where the Ready alert is sent over Gmail.
+    for column in ("staff_name", "department", "phone_number", "email"):
         try:
             conn.execute(f"ALTER TABLE orders ADD COLUMN {column} TEXT")
             conn.commit()

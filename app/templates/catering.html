@@ -18,6 +18,8 @@
   <div class="alert alert-danger">Please enter the meeting room and the requested date and time.</div>
   {% elif error == 'missing_staff_info' %}
   <div class="alert alert-danger">A phone number is required to place this order. Please try again.</div>
+  {% elif error == 'invalid_email' %}
+  <div class="alert alert-danger">Please enter a valid email address so the cafe can alert you when the order is ready.</div>
   {% endif %}
 
   <form id="order-form" method="post" action="{{ url_for('staff.review_order') }}">

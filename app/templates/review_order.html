@@ -28,7 +28,7 @@
 <div class="card shadow-sm">
   <div class="card-header"><h5 class="mb-0">Your Details</h5></div>
   <div class="card-body">
-    <p class="text-muted small">{% if package %}Placed under your Chief Clerk account. Add a phone number the cafe can reach you on.{% else %}Required to place this order.{% endif %}</p>
+    <p class="text-muted small">{% if package %}Placed under your Chief Clerk account. Add a phone number and an email address; the cafe will email you when the order is ready.{% else %}Required to place this order. The cafe will email you when it is ready.{% endif %}</p>
     <form method="post" action="{{ url_for('staff.place_order') }}" class="row g-3">
       <input type="hidden" name="order_type" value="{{ order_type }}">
       <input type="hidden" name="meeting_room" value="{{ meeting_room }}">
@@ -60,6 +60,10 @@
         <label class="form-label text-muted small">Phone Number</label>
         <input type="tel" name="phone_number" class="form-control" required autofocus>
       </div>
+      <div class="col-12">
+        <label class="form-label text-muted small">Email (Gmail alert when the order is ready)</label>
+        <input type="email" name="email" class="form-control" placeholder="name@gmail.com" required>
+      </div>
       {% else %}
       <div class="col-md-6">
         <label class="form-label text-muted small">Staff ID</label>
@@ -76,6 +80,10 @@
       <div class="col-md-6">
         <label class="form-label text-muted small">Phone Number</label>
         <input type="tel" name="phone_number" class="form-control" required>
+      </div>
+      <div class="col-12">
+        <label class="form-label text-muted small">Email (Gmail alert when the order is ready)</label>
+        <input type="email" name="email" class="form-control" placeholder="name@gmail.com" required>
       </div>
       {% endif %}
       <div class="col-12 d-flex gap-2 mt-2">

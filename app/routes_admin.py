@@ -16,7 +16,7 @@ from flask import (
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from .db import get_db, now_str, today_str, future_str
-from .mailer import send_password_reset_email
+from .mailer import ready_message, send_order_ready_email, send_password_reset_email
 from .survey import QUESTIONS, summary_sentences, tally
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -319,13 +319,19 @@ def orders():
             return redirect(url_for("admin.orders"))
         new_status = request.form["new_status"]
         db.execute("UPDATE orders SET status = ? WHERE order_id = ?", (new_status, order_id))
+        ready_order = None
         if new_status == "Ready":
-            db.execute(
-                "INSERT INTO notification (order_id, message, sent_time, is_read) VALUES (?, ?, ?, 0)",
-                (order_id, "Your order is ready for collection and payment at the counter!", now_str()),
-            )
+            ready_order = db.execute("SELECT * FROM orders WHERE order_id = ?", (order_id,)).fetchone()
+            if ready_order is not None:
+                db.execute(
+                    "INSERT INTO notification (order_id, message, sent_time, is_read) VALUES (?, ?, ?, 0)",
+                    (order_id, ready_message(ready_order), now_str()),
+                )
         db.commit()
         db.close()
+        if ready_order is not None:
+            # Gmail alert; a failed send is logged, never an error for the admin.
+            send_order_ready_email(ready_order)
         return redirect(url_for("admin.orders"))
 
     type_filter = request.args.get("type", "All")

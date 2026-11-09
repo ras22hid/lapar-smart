@@ -1,6 +1,7 @@
 import io
 import base64
 import random
+import re
 
 from functools import wraps
 
@@ -15,6 +16,7 @@ from .survey import QUESTIONS
 
 staff_bp = Blueprint("staff", __name__)
 
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")  # the order-ready alert is sent to this address
 CC_ROLE = "CC"  # Chief Clerk: the only staff role allowed to order meeting-room catering
 
 
@@ -422,6 +424,7 @@ def place_order():
     staff_name = request.form.get("staff_name", "").strip()
     department = request.form.get("department", "").strip()
     phone_number = request.form.get("phone_number", "").strip()
+    email = request.form.get("email", "").strip()
     order_type = request.form.get("order_type", "Counter")
     meeting_room = request.form.get("meeting_room") or None
     meeting_time = request.form.get("meeting_time") or None
@@ -436,10 +439,14 @@ def place_order():
         staff_id, staff_name, department = cc["staff_id"], cc["name"], cc["department"] or ""
         if not phone_number:
             return redirect(url_for("staff.catering", error="missing_staff_info"))
+        if not EMAIL_RE.match(email):
+            return redirect(url_for("staff.catering", error="invalid_email"))
         if not meeting_room or not meeting_time:
             return redirect(url_for("staff.catering", error="missing_meeting"))
     elif not staff_id or not staff_name or not department or not phone_number:
         return redirect(url_for("staff.menu", error="missing_staff_info"))
+    elif not EMAIL_RE.match(email):
+        return redirect(url_for("staff.menu", error="invalid_email"))
 
     db = get_db()
     # orders.staff_id is a foreign key to staff.staff_id, but Cafe Admin no
@@ -472,14 +479,15 @@ def place_order():
 
         total = package["price"] * package_qty
         db.execute(
-            "INSERT INTO orders (staff_id, staff_name, department, phone_number, order_type, status, "
+            "INSERT INTO orders (staff_id, staff_name, department, phone_number, email, order_type, status, "
             "total_amount, order_date, meeting_room, meeting_time, package_name, package_pax, package_qty) "
-            "VALUES (?, ?, ?, ?, 'MeetingRoom', 'Pending', ?, ?, ?, ?, ?, ?, ?)",
+            "VALUES (?, ?, ?, ?, ?, 'MeetingRoom', 'Pending', ?, ?, ?, ?, ?, ?, ?)",
             (
                 staff_id,
                 staff_name,
                 department,
                 phone_number,
+                email,
                 total,
                 now_str(),
                 meeting_room,
@@ -515,9 +523,9 @@ def place_order():
         return redirect(url_for("staff.menu", error="empty_cart"))
 
     cur = db.execute(
-        "INSERT INTO orders (staff_id, staff_name, department, phone_number, order_type, status, "
-        "total_amount, order_date, meeting_room, meeting_time) VALUES (?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?)",
-        (staff_id, staff_name, department, phone_number, order_type, total, now_str(), meeting_room, meeting_time),
+        "INSERT INTO orders (staff_id, staff_name, department, phone_number, email, order_type, status, "
+        "total_amount, order_date, meeting_room, meeting_time) VALUES (?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?)",
+        (staff_id, staff_name, department, phone_number, email, order_type, total, now_str(), meeting_room, meeting_time),
     )
     order_id = cur.lastrowid
     for item_id, qty, subtotal in cart:

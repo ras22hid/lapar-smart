@@ -50,6 +50,8 @@
 <div class="alert alert-danger">Please select at least one item before submitting your order.</div>
 {% elif request.args.get('error') == 'missing_staff_info' %}
 <div class="alert alert-danger">Staff ID, Name, Department, and Phone Number are all required to place an order. Please try again.</div>
+{% elif request.args.get('error') == 'invalid_email' %}
+<div class="alert alert-danger">Please enter a valid email address so the cafe can alert you when the order is ready.</div>
 {% endif %}
 
 <form id="order-form" method="post" action="{{ url_for('staff.review_order') }}">
