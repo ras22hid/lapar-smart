@@ -238,9 +238,9 @@ def cc_login():
         row = db.execute("SELECT * FROM staff WHERE staff_id = ?", (staff_id,)).fetchone()
         db.close()
         if row is None or row["role"] != CC_ROLE or not row["active"]:
-            error = "Only Chief Clerk (CC) staff can log in here to order meeting-room catering."
+            error = "Only registered Chief Clerk (CC) staff can log in here. Register first if you are a new Chief Clerk."
         elif not row["password_hash"]:
-            error = "This account has not completed registration yet. Use the registration link below."
+            error = "This account has not completed registration yet. Please register first."
         elif not check_password_hash(row["password_hash"], password):
             error = "Incorrect Staff ID or password."
         else:
@@ -251,30 +251,42 @@ def cc_login():
 
 @staff_bp.route("/staff/register", methods=["GET", "POST"])
 def cc_register():
-    """A Cafe Admin adds a Chief Clerk under Manage Cafe Admins; the CC then
-    chooses a password here. Only an ID that already has the CC role can
-    register, so no other staff member can activate an account."""
+    """A Chief Clerk registers here with Staff ID, name, department and a
+    password. The Cafe Admin is cafe staff, not FAMA staff, so the cafe does
+    not approve or manage CC accounts; each CC creates their own."""
     error = None
     success = None
     if request.method == "POST":
         staff_id = request.form.get("staff_id", "").strip()
+        name = request.form.get("name", "").strip()
+        department = request.form.get("department", "").strip()
         password = request.form.get("password", "")
         confirm = request.form.get("confirm_password", "")
         db = get_db()
         row = db.execute("SELECT * FROM staff WHERE staff_id = ?", (staff_id,)).fetchone()
-        if row is None or row["role"] != CC_ROLE or not row["active"]:
-            error = "This Staff ID has not been added as a Chief Clerk (CC). Ask a Cafe Admin to add it first."
-        elif row["password_hash"]:
-            error = "This account has already completed registration. Please log in instead."
+        if not staff_id or not name or not department:
+            error = "Staff ID, name and department are required."
+        elif row is not None and row["password_hash"]:
+            error = "This Staff ID has already been registered. Please log in instead."
+        elif row is not None and not row["active"]:
+            error = "This Staff ID is deactivated and cannot be registered."
         elif len(password) < 8:
             error = "Password must be at least 8 characters."
         elif password != confirm:
             error = "Passwords do not match."
         else:
-            db.execute(
-                "UPDATE staff SET password_hash = ? WHERE staff_id = ?",
-                (generate_password_hash(password), staff_id),
-            )
+            pw_hash = generate_password_hash(password)
+            if row is None:
+                db.execute(
+                    "INSERT INTO staff (staff_id, name, department, active, role, password_hash) "
+                    "VALUES (?, ?, ?, 1, ?, ?)",
+                    (staff_id, name, department, CC_ROLE, pw_hash),
+                )
+            else:
+                db.execute(
+                    "UPDATE staff SET name = ?, department = ?, role = ?, password_hash = ? WHERE staff_id = ?",
+                    (name, department, CC_ROLE, pw_hash, staff_id),
+                )
             db.commit()
             success = "Registration complete. You can now log in."
         db.close()
