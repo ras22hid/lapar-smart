@@ -28,7 +28,7 @@
 <div class="card shadow-sm">
   <div class="card-header"><h5 class="mb-0">Your Details</h5></div>
   <div class="card-body">
-    <p class="text-muted small">Required to place this order.</p>
+    <p class="text-muted small">{% if package %}Placed under your Chief Clerk account. Add a phone number the cafe can reach you on.{% else %}Required to place this order.{% endif %}</p>
     <form method="post" action="{{ url_for('staff.place_order') }}" class="row g-3">
       <input type="hidden" name="order_type" value="{{ order_type }}">
       <input type="hidden" name="meeting_room" value="{{ meeting_room }}">
@@ -43,6 +43,24 @@
       {% endfor %}
       {% endif %}
 
+      {% if package %}
+      <div class="col-md-6">
+        <label class="form-label text-muted small">Staff ID</label>
+        <input type="text" class="form-control" value="{{ cc.staff_id }}" disabled>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label text-muted small">Staff Name</label>
+        <input type="text" class="form-control" value="{{ cc.name }}" disabled>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label text-muted small">Department</label>
+        <input type="text" class="form-control" value="{{ cc.department or '' }}" disabled>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label text-muted small">Phone Number</label>
+        <input type="tel" name="phone_number" class="form-control" required autofocus>
+      </div>
+      {% else %}
       <div class="col-md-6">
         <label class="form-label text-muted small">Staff ID</label>
         <input type="text" name="staff_id" class="form-control" required>
@@ -59,8 +77,9 @@
         <label class="form-label text-muted small">Phone Number</label>
         <input type="tel" name="phone_number" class="form-control" required>
       </div>
+      {% endif %}
       <div class="col-12 d-flex gap-2 mt-2">
-        <a href="{{ url_for('staff.menu') }}" class="btn btn-outline-primary btn-rounded"><i class="fa-solid fa-arrow-left me-2"></i>Back to Menu</a>
+        <a href="{{ url_for('staff.catering') if package else url_for('staff.menu') }}" class="btn btn-outline-primary btn-rounded"><i class="fa-solid fa-arrow-left me-2"></i>Back to {{ 'Catering' if package else 'Menu' }}</a>
         <button type="submit" class="btn btn-primary btn-rounded px-4"><i class="fa-solid fa-check me-2"></i>Confirm Order</button>
       </div>
     </form>

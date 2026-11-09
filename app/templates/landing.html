@@ -13,7 +13,7 @@
         and get an alert on your phone when your order is ready for collection.
       </p>
       <div class="d-flex flex-wrap gap-2 mb-4">
-        <a href="{{ url_for('staff.menu') }}" class="btn btn-primary btn-rounded px-4"><i class="fa-solid fa-utensils me-2"></i>View Menu</a>
+        <a href="{{ url_for('staff.catering') }}" class="btn btn-primary btn-rounded px-4"><i class="fa-solid fa-calendar-check me-2"></i>Meeting Order</a>
         <a href="{{ url_for('admin.login') }}" class="btn btn-outline-light btn-rounded px-4"><i class="fa-solid fa-user-shield me-2"></i>Cafe Admin</a>
       </div>
 
@@ -37,7 +37,7 @@
       <div class="lapar-picks-title">Today's picks</div>
       <div class="lapar-picks">
         {% for p in picks %}
-        <a href="{{ url_for('staff.menu') }}" class="lapar-pick">
+        <div class="lapar-pick">
           {% if p.image_v %}
           <img class="lapar-pick-img" src="{{ url_for('staff.menu_image', item_id=p.item_id, v=p.image_v) }}" alt="{{ p.name }}" loading="lazy">
           {% else %}
@@ -48,8 +48,7 @@
             <div class="lapar-pick-name">{{ p.name }}</div>
             <div class="lapar-pick-price">RM {{ '%.2f'|format(p.price) }}</div>
           </div>
-          <span class="btn btn-primary btn-sm btn-rounded lapar-pick-btn">Order Now</span>
-        </a>
+        </div>
         {% endfor %}
       </div>
       {% endif %}

@@ -111,7 +111,9 @@ CREATE TABLE IF NOT EXISTS staff (
     staff_id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     department TEXT,
-    active INTEGER NOT NULL DEFAULT 1
+    active INTEGER NOT NULL DEFAULT 1,
+    role TEXT,
+    password_hash TEXT
 );
 
 CREATE TABLE IF NOT EXISTS admin (
@@ -206,6 +208,36 @@ CREATE TABLE IF NOT EXISTS survey_response (
 """
 
 
+# What each catering package contains. One line per group, "Label: item; item;
+# ...", so the catering page can show the food list and the drinks (served by
+# the jug) as separate lists. Only Chief Clerk (CC) staff ever see this page.
+PACKAGE_PRICES = [
+    ("Snack Box Package", 10, 120.00),
+    ("Standard Meeting Package", 20, 220.00),
+    ("Premium Conference Package", 30, 320.00),
+]
+PACKAGE_MENUS = {
+    "Snack Box Package": (
+        "Food: Assorted sandwiches (20 pcs); Curry puffs (20 pcs); Assorted kuih (20 pcs)\n"
+        "Beverages: Teh O (1 jug); Air sirap (1 jug)"
+    ),
+    "Standard Meeting Package": (
+        "Food: Nasi lemak ayam (20 sets); Spring rolls (20 pcs); Cucur udang (20 pcs)\n"
+        "Beverages: Teh tarik (2 jugs); Kopi O (1 jug); Air sirap (1 jug)"
+    ),
+    "Premium Conference Package": (
+        "Food: Nasi box set (30 boxes); Pudding (30 cups); Fresh fruit platter (3 platters)\n"
+        "Beverages: Teh tarik (3 jugs); Kopi O (2 jugs); Air sirap (2 jugs); Jus oren (2 jugs)"
+    ),
+}
+# The one-line descriptions that older databases still hold for the packages.
+OLD_PACKAGE_DESCRIPTIONS = {
+    "Snack Box Package": "Assorted sandwiches, curry puffs & mineral water for 10 people.",
+    "Standard Meeting Package": "Nasi lemak sets, finger food & drinks for 20 people.",
+    "Premium Conference Package": "Full meal boxes, desserts & beverages for 30 people.",
+}
+
+
 def seed(conn):
     today = date.today().isoformat()
 
@@ -239,11 +271,7 @@ def seed(conn):
         menu,
     )
 
-    packages = [
-        ("Snack Box Package", 10, 120.00, "Assorted sandwiches, curry puffs & mineral water for 10 people."),
-        ("Standard Meeting Package", 20, 220.00, "Nasi lemak sets, finger food & drinks for 20 people."),
-        ("Premium Conference Package", 30, 320.00, "Full meal boxes, desserts & beverages for 30 people."),
-    ]
+    packages = [(name, pax, price, PACKAGE_MENUS[name]) for name, pax, price in PACKAGE_PRICES]
     conn.executemany(
         "INSERT INTO catering_package (name, pax, price, description, is_available) VALUES (?, ?, ?, ?, 1)",
         packages,
@@ -284,6 +312,27 @@ def init_db():
             conn.commit()
         except Exception:
             pass
+    # Migration for databases created before meeting-room catering was limited
+    # to Chief Clerk (CC) staff: CC accounts live in `staff` and need a role
+    # and a password hash. A fresh CREATE TABLE above already has them.
+    for column in ("role", "password_hash"):
+        try:
+            conn.execute(f"ALTER TABLE staff ADD COLUMN {column} TEXT")
+            conn.commit()
+        except Exception:
+            pass
+    # Replace the old one-line package descriptions with the food and drinks
+    # lists, but only where the old text is still untouched.
+    probe = conn.execute(
+        "SELECT description FROM catering_package WHERE name = ?", ("Snack Box Package",)
+    ).fetchone()
+    if probe is not None and probe["description"] == OLD_PACKAGE_DESCRIPTIONS["Snack Box Package"]:
+        for name, old in OLD_PACKAGE_DESCRIPTIONS.items():
+            conn.execute(
+                "UPDATE catering_package SET description = ? WHERE name = ? AND description = ?",
+                (PACKAGE_MENUS[name], name, old),
+            )
+        conn.commit()
     row = conn.execute("SELECT COUNT(*) AS c FROM menu_item").fetchone()
     if row["c"] == 0:
         seed(conn)
@@ -301,3 +350,4 @@ def today_str():
 
 def future_str(minutes):
     return (datetime.now() + timedelta(minutes=minutes)).strftime("%Y-%m-%d %H:%M:%S")
+

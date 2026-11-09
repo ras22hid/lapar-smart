@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Meeting Room Catering{% endblock %}
+{% block left_panel %}{% endblock %}
+{% block right_panel %}{% endblock %}
+{% block content %}
+<div class="lapar-single">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h2 class="fw-bold mb-0"><i class="fa-solid fa-calendar-check text-primary me-2"></i>Meeting Room Catering</h2>
+    <span class="text-muted small">
+      <i class="fa-solid fa-user-tie me-1"></i>{{ cc.name }} ({{ cc.staff_id }}) &middot; Chief Clerk
+      &middot; <a href="{{ url_for('staff.cc_logout') }}" class="lapar-link">Logout</a>
+    </span>
+  </div>
+
+  {% if error == 'empty_cart' %}
+  <div class="alert alert-danger">Please choose a catering package and the number of packages.</div>
+  {% elif error == 'missing_meeting' %}
+  <div class="alert alert-danger">Please enter the meeting room and the requested date and time.</div>
+  {% elif error == 'missing_staff_info' %}
+  <div class="alert alert-danger">A phone number is required to place this order. Please try again.</div>
+  {% endif %}
+
+  <form id="order-form" method="post" action="{{ url_for('staff.review_order') }}">
+    <input type="hidden" name="order_type" value="MeetingRoom">
+    <input type="hidden" name="package_id" id="package_id">
+
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6 mb-3 mb-md-0">
+            <label class="form-label text-muted small">Meeting Room</label>
+            <input type="text" name="meeting_room" class="form-control" placeholder="e.g. Meeting Room 2" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-muted small">Requested Date &amp; Time</label>
+            <input type="datetime-local" name="meeting_time" class="form-control" required>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h5 class="fw-bold mb-2"><i class="fa-solid fa-people-group text-primary me-2"></i>Catering Packages</h5>
+    <p class="text-muted small">Catering is priced per package for a fixed headcount (pax). Choose a package and how many you need for your meeting. Drinks are served by the jug.</p>
+    <div class="row">
+      {% for pkg in packages %}
+      <div class="col-md-4 mb-3">
+        <div class="lapar-package-card h-100" data-package-id="{{ pkg.package_id }}" onclick="selectPackage({{ pkg.package_id }}, {{ pkg.price }})">
+          <span class="pax-badge"><i class="fa-solid fa-user-group me-1"></i>{{ pkg.pax }} pax</span>
+          <h6 class="fw-bold mb-2">{{ pkg.name }}</h6>
+          {% for label, items in pkg.groups %}
+          <div class="small fw-bold mt-2"><i class="fa-solid {{ 'fa-mug-hot' if label.lower().startswith('bev') else 'fa-utensils' }} me-1"></i>{{ label }}</div>
+          <ul class="lapar-package-list">
+            {% for it in items %}<li>{{ it }}</li>{% endfor %}
+          </ul>
+          {% endfor %}
+          <div class="fw-bold text-primary mt-2">RM {{ "%.2f"|format(pkg.price) }} <span class="text-muted fw-normal small">/ package</span></div>
+        </div>
+      </div>
+      {% else %}
+      <div class="col-12"><p class="text-muted">No catering package is available at the moment.</p></div>
+      {% endfor %}
+    </div>
+
+    <div class="row align-items-end mt-2">
+      <div class="col-md-4">
+        <label class="form-label text-muted small">Number of Packages</label>
+        <div class="lapar-qty-control">
+          <button type="button" class="qty-btn" onclick="changePackageQty(-1)">&minus;</button>
+          <input type="number" name="package_qty" id="package_qty" class="qty-input" value="1" min="1" oninput="updateTotal()">
+          <button type="button" class="qty-btn" onclick="changePackageQty(1)">&plus;</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="lapar-cart-bar">
+      <div>
+        <span class="text-muted small d-block">Total</span>
+        <strong id="total-display" class="fs-5">RM 0.00</strong>
+      </div>
+      <button type="submit" class="btn btn-primary btn-rounded px-4"><i class="fa-solid fa-check me-2"></i>Review Order</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/catering.js') }}"></script>
+{% endblock %}

@@ -2,7 +2,8 @@
 {% block title %}Cafe Admins{% endblock %}
 {% block page_title %}<i class="fa-solid fa-user-shield me-2 text-primary"></i>Manage Cafe Admins{% endblock %}
 {% block content %}
-<p class="text-muted small">FAMA staff are not managed here &mdash; they identify themselves (Staff ID, Name, Department, Phone Number) on the Review Order page each time they place an order.</p>
+<p class="text-muted small">Counter-order staff are not managed here &mdash; they identify themselves (Staff ID, Name, Department, Phone Number) on the Review Order page each time they place an order. Only the Chief Clerk (CC) accounts below, which may order meeting-room catering, are managed on this page.</p>
+{% if error == 'cc_exists' %}<div class="alert alert-warning">That Staff ID is already a Chief Clerk (CC).</div>{% endif %}
 <div class="card shadow-sm">
   <div class="card-header"><h5 class="mb-0">Cafe Admins</h5></div>
   <div class="card-body p-0">
@@ -44,6 +45,52 @@
       <div class="col-md-2"><label class="form-label text-muted small">Role</label><input type="text" name="extra" class="form-control" value="Cafe Admin"></div>
       <div class="col-md-3"><label class="form-label text-muted small">Email (for password reset)</label><input type="email" name="email" class="form-control" placeholder="admin@example.com"></div>
       <div class="col-md-2 d-flex align-items-end"><button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-plus me-1"></i>Add</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm mt-4">
+  <div class="card-header"><h5 class="mb-0">Chief Clerks (CC) &mdash; meeting-room catering</h5></div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead><tr><th>Staff ID</th><th>Name</th><th>Department</th><th>Status</th><th>Registration</th><th></th></tr></thead>
+        <tbody>
+          {% for c in cc_rows %}
+          <tr>
+            <td>{{ c.staff_id }}</td><td>{{ c.name }}</td><td>{{ c.department }}</td>
+            <td>{% if c.active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Deactivated</span>{% endif %}</td>
+            <td>{% if c.password_hash %}<span class="badge bg-success">Registered</span>{% else %}<span class="badge bg-warning text-dark">Pending</span>{% endif %}</td>
+            <td class="d-flex gap-2">
+              <form method="post">
+                <input type="hidden" name="action" value="toggle_cc">
+                <input type="hidden" name="staff_id" value="{{ c.staff_id }}">
+                <button type="submit" class="btn btn-sm btn-outline-secondary">{{ "Deactivate" if c.active else "Activate" }}</button>
+              </form>
+              {% if c.password_hash %}
+              <form method="post" onsubmit="return confirm('Clear the password of {{ c.staff_id }}? The CC will have to register again.');">
+                <input type="hidden" name="action" value="reset_cc">
+                <input type="hidden" name="staff_id" value="{{ c.staff_id }}">
+                <button type="submit" class="btn btn-sm btn-outline-secondary">Reset password</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="text-muted text-center py-3">No Chief Clerk has been added yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card-body border-top">
+    <p class="text-muted small mb-2">A new Chief Clerk completes registration at <code>/staff/register</code> by choosing a password, then logs in at <code>/staff/login</code>.</p>
+    <form method="post" class="row g-3">
+      <input type="hidden" name="action" value="add_cc">
+      <div class="col-md-3"><label class="form-label text-muted small">Staff ID</label><input type="text" name="staff_id" class="form-control" required></div>
+      <div class="col-md-4"><label class="form-label text-muted small">Name</label><input type="text" name="name" class="form-control" required></div>
+      <div class="col-md-3"><label class="form-label text-muted small">Department</label><input type="text" name="department" class="form-control"></div>
+      <div class="col-md-2 d-flex align-items-end"><button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-plus me-1"></i>Add CC</button></div>
     </form>
   </div>
 </div>

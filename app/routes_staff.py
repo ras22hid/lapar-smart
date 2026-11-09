@@ -2,13 +2,63 @@ import io
 import base64
 import random
 
-from flask import Blueprint, Response, abort, current_app, render_template, request, redirect, url_for, jsonify
+from functools import wraps
+
+from flask import (
+    Blueprint, Response, abort, current_app, render_template, request, redirect, url_for, jsonify, session,
+)
 from itsdangerous import BadSignature, URLSafeSerializer
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from .db import get_db, now_str, today_str
 from .survey import QUESTIONS
 
 staff_bp = Blueprint("staff", __name__)
+
+CC_ROLE = "CC"  # Chief Clerk: the only staff role allowed to order meeting-room catering
+
+
+def current_cc():
+    """The logged-in Chief Clerk's account row, or None. The account is read
+    again on every call, so a CC who is deactivated (or whose role is
+    removed) loses access immediately instead of when the session expires."""
+    staff_id = session.get("cc_id")
+    if not staff_id:
+        return None
+    db = get_db()
+    row = db.execute("SELECT * FROM staff WHERE staff_id = ?", (staff_id,)).fetchone()
+    db.close()
+    if row is None or row["role"] != CC_ROLE or not row["active"] or not row["password_hash"]:
+        session.pop("cc_id", None)
+        return None
+    return row
+
+
+def cc_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        cc = current_cc()
+        if cc is None:
+            return redirect(url_for("staff.cc_login", next=request.path))
+        return view(cc, *args, **kwargs)
+
+    return wrapped
+
+
+def package_menu(description):
+    """Splits a package description ("Food: a; b\nBeverages: c; d") into
+    [(label, [items])] for display. Unlabelled text becomes one group."""
+    groups = []
+    for line in (description or "").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        label, sep, rest = line.partition(":")
+        if not sep:
+            groups.append(("", [line]))
+            continue
+        groups.append((label.strip(), [i.strip() for i in rest.split(";") if i.strip()]))
+    return groups
 
 ORDERS_COOKIE = "lapar_orders"
 ORDERS_COOKIE_MAX_AGE = 30 * 24 * 3600
@@ -150,9 +200,6 @@ def menu():
         "SELECT m.*, (SELECT updated FROM menu_item_image i WHERE i.item_id = m.item_id) AS image_v "
         "FROM menu_item m WHERE m.is_available = 1 ORDER BY m.category, m.name",
     ).fetchall()
-    packages = db.execute(
-        "SELECT * FROM catering_package WHERE is_available = 1 ORDER BY pax"
-    ).fetchall()
     my_orders = []
     order_ids = recent_order_ids()
     if order_ids:
@@ -163,8 +210,102 @@ def menu():
         ).fetchall()
     db.close()
     return render_template(
-        "menu.html", items=items, packages=packages, today=today_str(), my_orders=my_orders
+        "menu.html", items=items, today=today_str(), my_orders=my_orders
     )
+
+
+# ---------------------------------------------------------------- Chief Clerk (CC) area
+# Meeting-room catering is limited to staff whose role is CC (Chief Clerk).
+# Counter orders stay anonymous; nothing below affects them.
+
+
+def _safe_next(target):
+    """Only follow a `next` that is a local path, never an external URL."""
+    if target and target.startswith("/") and not target.startswith("//"):
+        return target
+    return None
+
+
+@staff_bp.route("/staff/login", methods=["GET", "POST"])
+def cc_login():
+    """Login for Chief Clerk (CC) staff, with Staff ID and password. Staff
+    whose role is not CC cannot log in, so they cannot reach the catering page."""
+    error = None
+    if request.method == "POST":
+        staff_id = request.form.get("staff_id", "").strip()
+        password = request.form.get("password", "")
+        db = get_db()
+        row = db.execute("SELECT * FROM staff WHERE staff_id = ?", (staff_id,)).fetchone()
+        db.close()
+        if row is None or row["role"] != CC_ROLE or not row["active"]:
+            error = "Only Chief Clerk (CC) staff can log in here to order meeting-room catering."
+        elif not row["password_hash"]:
+            error = "This account has not completed registration yet. Use the registration link below."
+        elif not check_password_hash(row["password_hash"], password):
+            error = "Incorrect Staff ID or password."
+        else:
+            session["cc_id"] = staff_id
+            return redirect(_safe_next(request.args.get("next")) or url_for("staff.catering"))
+    return render_template("cc_login.html", error=error)
+
+
+@staff_bp.route("/staff/register", methods=["GET", "POST"])
+def cc_register():
+    """A Cafe Admin adds a Chief Clerk under Manage Cafe Admins; the CC then
+    chooses a password here. Only an ID that already has the CC role can
+    register, so no other staff member can activate an account."""
+    error = None
+    success = None
+    if request.method == "POST":
+        staff_id = request.form.get("staff_id", "").strip()
+        password = request.form.get("password", "")
+        confirm = request.form.get("confirm_password", "")
+        db = get_db()
+        row = db.execute("SELECT * FROM staff WHERE staff_id = ?", (staff_id,)).fetchone()
+        if row is None or row["role"] != CC_ROLE or not row["active"]:
+            error = "This Staff ID has not been added as a Chief Clerk (CC). Ask a Cafe Admin to add it first."
+        elif row["password_hash"]:
+            error = "This account has already completed registration. Please log in instead."
+        elif len(password) < 8:
+            error = "Password must be at least 8 characters."
+        elif password != confirm:
+            error = "Passwords do not match."
+        else:
+            db.execute(
+                "UPDATE staff SET password_hash = ? WHERE staff_id = ?",
+                (generate_password_hash(password), staff_id),
+            )
+            db.commit()
+            success = "Registration complete. You can now log in."
+        db.close()
+    return render_template("cc_register.html", error=error, success=success)
+
+
+@staff_bp.route("/staff/logout")
+def cc_logout():
+    session.pop("cc_id", None)
+    return redirect(url_for("staff.landing"))
+
+
+@staff_bp.route("/catering")
+@cc_required
+def catering(cc):
+    """UC4: Reserve Meeting Room Order -- choose the room, time and package.
+    Only a logged-in Chief Clerk can open this page, so the package contents
+    are only visible to CC staff."""
+    db = get_db()
+    packages = db.execute(
+        "SELECT * FROM catering_package WHERE is_available = 1 ORDER BY pax"
+    ).fetchall()
+    db.close()
+    pkgs = [
+        {
+            "package_id": p["package_id"], "name": p["name"], "pax": p["pax"], "price": p["price"],
+            "groups": package_menu(p["description"]),
+        }
+        for p in packages
+    ]
+    return render_template("catering.html", cc=cc, packages=pkgs, error=request.args.get("error"))
 
 
 @staff_bp.route("/menu/image/<int:item_id>")
@@ -192,22 +333,30 @@ def review_order():
     Department, and Phone Number -- captured here, per order, rather
     than looked up from a Cafe Admin-managed staff registry."""
     order_type = request.form.get("order_type", "Counter")
-    meeting_room = request.form.get("meeting_room", "")
-    meeting_time = request.form.get("meeting_time", "")
-
-    db = get_db()
+    meeting_room = request.form.get("meeting_room", "").strip()
+    meeting_time = request.form.get("meeting_time", "").strip()
 
     if order_type == "MeetingRoom":
+        # Meeting-room catering is for Chief Clerks only.
+        cc = current_cc()
+        if cc is None:
+            return redirect(url_for("staff.cc_login", next=url_for("staff.catering")))
         package_id = request.form.get("package_id")
-        package_qty = int(request.form.get("package_qty") or 0)
+        try:
+            package_qty = int(request.form.get("package_qty") or 0)
+        except ValueError:
+            package_qty = 0
+        db = get_db()
         package = None
         if package_id:
             package = db.execute(
-                "SELECT * FROM catering_package WHERE package_id = ?", (package_id,)
+                "SELECT * FROM catering_package WHERE package_id = ? AND is_available = 1", (package_id,)
             ).fetchone()
         db.close()
         if not package or package_qty <= 0:
-            return redirect(url_for("staff.menu", error="empty_cart"))
+            return redirect(url_for("staff.catering", error="empty_cart"))
+        if not meeting_room or not meeting_time:
+            return redirect(url_for("staff.catering", error="missing_meeting"))
         return render_template(
             "review_order.html",
             order_type=order_type,
@@ -218,7 +367,10 @@ def review_order():
             package_qty=package_qty,
             cart_items=None,
             total=package["price"] * package_qty,
+            cc=cc,
         )
+
+    db = get_db()
 
     item_ids = request.form.getlist("item_id")
     quantities = request.form.getlist("quantity")
@@ -262,7 +414,19 @@ def place_order():
     meeting_room = request.form.get("meeting_room") or None
     meeting_time = request.form.get("meeting_time") or None
 
-    if not staff_id or not staff_name or not department or not phone_number:
+    if order_type == "MeetingRoom":
+        # Only a logged-in Chief Clerk can place this order, and it is always
+        # placed under that CC's own Staff ID, name and department: whatever
+        # the form says for those three fields is ignored.
+        cc = current_cc()
+        if cc is None:
+            return redirect(url_for("staff.cc_login", next=url_for("staff.catering")))
+        staff_id, staff_name, department = cc["staff_id"], cc["name"], cc["department"] or ""
+        if not phone_number:
+            return redirect(url_for("staff.catering", error="missing_staff_info"))
+        if not meeting_room or not meeting_time:
+            return redirect(url_for("staff.catering", error="missing_meeting"))
+    elif not staff_id or not staff_name or not department or not phone_number:
         return redirect(url_for("staff.menu", error="missing_staff_info"))
 
     db = get_db()
@@ -280,16 +444,19 @@ def place_order():
 
     if order_type == "MeetingRoom":
         package_id = request.form.get("package_id")
-        package_qty = int(request.form.get("package_qty") or 0)
+        try:
+            package_qty = int(request.form.get("package_qty") or 0)
+        except ValueError:
+            package_qty = 0
         package = None
         if package_id:
             package = db.execute(
-                "SELECT * FROM catering_package WHERE package_id = ?", (package_id,)
+                "SELECT * FROM catering_package WHERE package_id = ? AND is_available = 1", (package_id,)
             ).fetchone()
 
         if not package or package_qty <= 0:
             db.close()
-            return redirect(url_for("staff.menu", error="empty_cart"))
+            return redirect(url_for("staff.catering", error="empty_cart"))
 
         total = package["price"] * package_qty
         db.execute(

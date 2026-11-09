@@ -424,6 +424,42 @@ def users():
                 (user_id,),
             )
             db.commit()
+        elif action == "add_cc":
+            # Adds (or promotes) a Chief Clerk, the only staff role that may
+            # order meeting-room catering. The CC chooses a password at
+            # /staff/register, so the account starts without one.
+            staff_id = request.form["staff_id"].strip()
+            name = request.form["name"].strip()
+            department = request.form.get("department", "").strip()
+            existing = db.execute("SELECT role FROM staff WHERE staff_id = ?", (staff_id,)).fetchone()
+            if existing is not None and existing["role"] == "CC":
+                db.close()
+                return redirect(url_for("admin.users", error="cc_exists"))
+            if existing is None:
+                db.execute(
+                    "INSERT INTO staff (staff_id, name, department, active, role) VALUES (?, ?, ?, 1, 'CC')",
+                    (staff_id, name, department),
+                )
+            else:
+                db.execute(
+                    "UPDATE staff SET name = ?, department = ?, active = 1, role = 'CC', password_hash = NULL "
+                    "WHERE staff_id = ?",
+                    (name, department, staff_id),
+                )
+            db.commit()
+        elif action == "toggle_cc":
+            db.execute(
+                "UPDATE staff SET active = 1 - active WHERE staff_id = ? AND role = 'CC'",
+                (request.form["staff_id"],),
+            )
+            db.commit()
+        elif action == "reset_cc":
+            # Forgotten CC password: clear it so the CC registers again.
+            db.execute(
+                "UPDATE staff SET password_hash = NULL WHERE staff_id = ? AND role = 'CC'",
+                (request.form["staff_id"],),
+            )
+            db.commit()
         elif action == "set_email":
             # Lets a Cafe Admin put an email on file for any admin_id
             # (including one seeded before this column existed), which is
@@ -437,5 +473,8 @@ def users():
         return redirect(url_for("admin.users"))
 
     admin_rows = db.execute("SELECT * FROM admin ORDER BY admin_id").fetchall()
+    cc_rows = db.execute("SELECT * FROM staff WHERE role = 'CC' ORDER BY staff_id").fetchall()
     db.close()
-    return render_template("admin_users.html", admin_rows=admin_rows)
+    return render_template(
+        "admin_users.html", admin_rows=admin_rows, cc_rows=cc_rows, error=request.args.get("error")
+    )
