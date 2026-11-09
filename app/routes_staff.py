@@ -262,12 +262,15 @@ def cc_register():
         staff_id = request.form.get("staff_id", "").strip()
         name = request.form.get("name", "").strip()
         department = request.form.get("department", "").strip()
+        email = request.form.get("email", "").strip()
         password = request.form.get("password", "")
         confirm = request.form.get("confirm_password", "")
         db = get_db()
         row = db.execute("SELECT * FROM staff WHERE staff_id = ?", (staff_id,)).fetchone()
         if not staff_id or not name or not department:
             error = "Staff ID, name and department are required."
+        elif not EMAIL_RE.match(email):
+            error = "Please enter a valid email address. Order-ready alerts are sent there."
         elif row is not None and row["password_hash"]:
             error = "This Staff ID has already been registered. Please log in instead."
         elif row is not None and not row["active"]:
@@ -280,14 +283,14 @@ def cc_register():
             pw_hash = generate_password_hash(password)
             if row is None:
                 db.execute(
-                    "INSERT INTO staff (staff_id, name, department, active, role, password_hash) "
-                    "VALUES (?, ?, ?, 1, ?, ?)",
-                    (staff_id, name, department, CC_ROLE, pw_hash),
+                    "INSERT INTO staff (staff_id, name, department, active, role, password_hash, email) "
+                    "VALUES (?, ?, ?, 1, ?, ?, ?)",
+                    (staff_id, name, department, CC_ROLE, pw_hash, email),
                 )
             else:
                 db.execute(
-                    "UPDATE staff SET name = ?, department = ?, role = ?, password_hash = ? WHERE staff_id = ?",
-                    (name, department, CC_ROLE, pw_hash, staff_id),
+                    "UPDATE staff SET name = ?, department = ?, role = ?, password_hash = ?, email = ? WHERE staff_id = ?",
+                    (name, department, CC_ROLE, pw_hash, email, staff_id),
                 )
             db.commit()
             success = "Registration complete. You can now log in."

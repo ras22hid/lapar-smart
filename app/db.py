@@ -113,7 +113,8 @@ CREATE TABLE IF NOT EXISTS staff (
     department TEXT,
     active INTEGER NOT NULL DEFAULT 1,
     role TEXT,
-    password_hash TEXT
+    password_hash TEXT,
+    email TEXT
 );
 
 CREATE TABLE IF NOT EXISTS admin (
@@ -317,7 +318,7 @@ def init_db():
     # Migration for databases created before meeting-room catering was limited
     # to Chief Clerk (CC) staff: CC accounts live in `staff` and need a role
     # and a password hash. A fresh CREATE TABLE above already has them.
-    for column in ("role", "password_hash"):
+    for column in ("role", "password_hash", "email"):
         try:
             conn.execute(f"ALTER TABLE staff ADD COLUMN {column} TEXT")
             conn.commit()
