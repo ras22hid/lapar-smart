@@ -12,6 +12,7 @@ from itsdangerous import BadSignature, URLSafeSerializer
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from .db import get_db, now_str, today_str
+from .mailer import send_order_status_email
 from .survey import QUESTIONS
 
 staff_bp = Blueprint("staff", __name__)
@@ -502,7 +503,10 @@ def place_order():
         )
         order_id = db.execute("SELECT last_insert_rowid() AS id").fetchone()["id"]
         db.commit()
+        placed = db.execute("SELECT * FROM orders WHERE order_id = ?", (order_id,)).fetchone()
         db.close()
+        # Pending alert: the CC gets an email as soon as the order is placed.
+        send_order_status_email(placed, "Pending")
         return redirect_to_order_status(order_id, staff_id)
 
     item_ids = request.form.getlist("item_id")

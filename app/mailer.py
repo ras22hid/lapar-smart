@@ -68,15 +68,30 @@ def ready_message(order):
     return "Your order is ready for collection and payment at the counter!"
 
 
-def send_order_ready_email(order):
-    """Order-status alert over Gmail, sent when the cafe marks the order
-    Ready. `order` is an orders row. Returns False (non-fatal) when the
-    order has no email address or the email could not be sent."""
+def status_message(order, status):
+    """Alert text for an order reaching `status`. Meeting-room orders are
+    alerted at every step; counter orders only when Ready."""
+    if status == "Ready":
+        return ready_message(order)
+    if order["order_type"] != "MeetingRoom":
+        return None
+    return {
+        "Pending": "We have received your catering order. The cafe will start preparing it soon.",
+        "Preparing": "The cafe is now preparing your catering order.",
+        "Completed": "Your catering order is completed. Thank you for ordering from Lazaria Cafe.",
+    }.get(status)
+
+
+def send_order_status_email(order, status):
+    """Order-status alert over Gmail, sent when an order reaches `status`.
+    `order` is an orders row. Returns False (non-fatal) when this status
+    sends no alert, the order has no email address, or the send failed."""
+    message = status_message(order, status)
     to_email = (order["email"] or "").strip()
-    if not to_email:
+    if message is None or not to_email:
         return False
     name = order["staff_name"] or order["staff_id"]
-    lines = [f"Hi {name},", "", ready_message(order), "", f"Order #{order['order_id']}"]
+    lines = [f"Hi {name},", "", message, "", f"Order #{order['order_id']} - status: {status}"]
     if order["order_type"] == "MeetingRoom":
         lines += [
             f"Package: {order['package_name']} x {order['package_qty']}",
@@ -84,9 +99,9 @@ def send_order_ready_email(order):
             f"Requested time: {order['meeting_time']}",
         ]
     lines += [f"Total: RM {order['total_amount']:.2f}", "", "-- Lapar Smart · Lazaria Cafe"]
-    return _send_gmail(
-        to_email,
-        f"Your Lapar Smart order #{order['order_id']} is ready",
-        "\n".join(lines),
-        "order ready",
+    subject = (
+        f"Your Lapar Smart order #{order['order_id']} is ready"
+        if status == "Ready"
+        else f"Your Lapar Smart order #{order['order_id']}: {status}"
     )
+    return _send_gmail(to_email, subject, "\n".join(lines), "order status")
