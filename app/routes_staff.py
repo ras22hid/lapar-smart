@@ -1,4 +1,5 @@
 import io
+import os
 import base64
 import random
 import re
@@ -129,6 +130,22 @@ def inject_landing_qr():
     def landing_qr():
         return _cached_qr(request.host_url.rstrip("/") + url_for("staff.menu"))
     return {"landing_qr": landing_qr}
+
+
+@lru_cache(maxsize=1)
+def presentation_deck():
+    """Slide content for the project presentation. The same file feeds the .pptx generator."""
+    import json
+    path = os.path.join(current_app.static_folder, "presentation", "slides.json")
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+@staff_bp.route("/presentation")
+def presentation():
+    """Project presentation as a web slide deck (opened from the Demo Presentation button)."""
+    deck = presentation_deck()
+    return render_template("presentation.html", deck=deck, slides=deck["slides"])
 
 
 @staff_bp.route("/")

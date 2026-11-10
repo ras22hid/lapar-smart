@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Presentation &middot; Lapar Smart</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="{{ url_for('static', filename='css/presentation.css') }}" rel="stylesheet">
+</head>
+<body>
+{% set img = 'presentation/' %}
+<main class="deck" id="deck" aria-live="polite">
+  {% for s in slides %}
+  <section class="slide slide-{{ s.type }}" data-index="{{ loop.index }}" data-section="{{ s.section }}" aria-label="Slide {{ loop.index }} of {{ slides|length }}">
+    <div class="slide-inner">
+
+      {% if s.type == 'title' %}
+      <div class="t-left">
+        <span class="eyebrow"><i class="fa-solid fa-mug-hot"></i>{{ s.eyebrow }}</span>
+        <h1 class="t-title">Lapar <em>Smart</em></h1>
+        <p class="t-sub">{{ s.subtitle }}</p>
+        <ul class="t-meta">{% for m in s.meta %}<li>{{ m }}</li>{% endfor %}</ul>
+      </div>
+      <div class="t-right"><img class="shot" src="{{ url_for('static', filename=img ~ s.image) }}" alt="Lapar Smart homepage"></div>
+
+      {% elif s.type == 'closing' %}
+      <div class="t-left">
+        <span class="eyebrow"><i class="fa-solid fa-display"></i>{{ s.eyebrow }}</span>
+        <h1 class="t-title">Scan, Order <em>&amp; Enjoy</em></h1>
+        <p class="t-sub">{{ s.subtitle }}</p>
+        <a class="c-url" href="https://{{ s.url }}" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i>{{ s.url }}</a>
+        <p class="c-thanks">{{ s.thanks }}</p>
+      </div>
+      <div class="t-right c-qr">
+        <div class="qr-frame"><img src="{{ url_for('static', filename=img ~ s.image) }}" alt="QR code to the Lapar Smart site"></div>
+        <span>Scan to open the system</span>
+      </div>
+
+      {% else %}
+      <header class="s-head">
+        <span class="s-section">{{ s.section }}</span>
+        <h2 class="s-title">{{ s.title }}</h2>
+        {% if s.lead %}<p class="s-lead">{{ s.lead }}</p>{% endif %}
+      </header>
+
+      {% if s.type == 'stats' %}
+      <div class="stats">
+        {% for st in s.stats %}
+        <div class="stat"><div class="stat-value">{{ st.value }}</div><div class="stat-label">{{ st.label }}</div></div>
+        {% endfor %}
+      </div>
+
+      {% elif s.type == 'cards' %}
+      <div class="cards cards-{{ s.cards|length }}">
+        {% for c in s.cards %}
+        <div class="card"><span class="card-icon"><i class="fa-solid {{ c.icon }}"></i></span><h3>{{ c.head }}</h3><p>{{ c.text }}</p></div>
+        {% endfor %}
+      </div>
+
+      {% elif s.type == 'table' %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr>{% for c in s.columns %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+          <tbody>{% for r in s.rows %}<tr{% if loop.first and s.columns[0] == 'System' %} class="hl"{% endif %}>{% for c in r %}<td>{{ c }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+        </table>
+      </div>
+
+      {% elif s.type == 'steps' %}
+      <ol class="steps">
+        {% for st in s.steps %}
+        <li><span class="step-n">{{ loop.index0 }}</span><h3>{{ st.head }}</h3><span class="step-when">{{ st.when }}</span><p>{{ st.text }}</p></li>
+        {% endfor %}
+      </ol>
+
+      {% elif s.type == 'figure' %}
+      <div class="figure"><img src="{{ url_for('static', filename=img ~ s.image) }}" alt="{{ s.title }}"></div>
+      <div class="points">
+        {% for p in s.points %}<div class="point"><h3>{{ p.head }}</h3><p>{{ p.text }}</p></div>{% endfor %}
+      </div>
+
+      {% elif s.type == 'split' %}
+      <div class="split">
+        <ul class="bullets">{% for b in s.bullets %}<li>{{ b }}</li>{% endfor %}</ul>
+        <div class="split-img"><img class="shot" src="{{ url_for('static', filename=img ~ s.image) }}" alt="{{ s.title }}"></div>
+      </div>
+
+      {% elif s.type == 'compare' %}
+      <div class="compare">
+        <div class="col col-good"><h3><i class="fa-solid fa-circle-check"></i>{{ s.left.head }}</h3><ul>{% for i in s.left['items'] %}<li>{{ i }}</li>{% endfor %}</ul></div>
+        <div class="col col-limit"><h3><i class="fa-solid fa-triangle-exclamation"></i>{{ s.right.head }}</h3><ul>{% for i in s.right['items'] %}<li>{{ i }}</li>{% endfor %}</ul></div>
+      </div>
+      {% endif %}
+
+      {% if s.note %}<p class="s-note">{{ s.note }}</p>{% endif %}
+      {% endif %}
+
+    </div>
+  </section>
+  {% endfor %}
+</main>
+
+<nav class="deck-bar" aria-label="Slide controls">
+  <a class="bar-home" href="{{ url_for('staff.landing') }}" title="Back to the homepage"><i class="fa-solid fa-house"></i><span>Home</span></a>
+  <div class="bar-progress" aria-hidden="true"><div id="progress"></div></div>
+  <a class="bar-home" href="{{ url_for('static', filename='presentation/LaparSmart_Presentation.pptx') }}" download title="Download the slides as PowerPoint"><i class="fa-solid fa-file-powerpoint"></i><span>.pptx</span></a>
+  <span class="bar-count"><span id="cur">1</span> / {{ slides|length }}</span>
+  <button type="button" id="prev" title="Previous slide (left arrow)" aria-label="Previous slide"><i class="fa-solid fa-chevron-left"></i></button>
+  <button type="button" id="next" title="Next slide (right arrow)" aria-label="Next slide"><i class="fa-solid fa-chevron-right"></i></button>
+  <button type="button" id="full" title="Full screen (F)" aria-label="Full screen"><i class="fa-solid fa-expand"></i></button>
+</nav>
+
+<script src="{{ url_for('static', filename='js/presentation.js') }}"></script>
+</body>
+</html>
