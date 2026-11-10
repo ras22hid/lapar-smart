@@ -1,71 +1,48 @@
-<!doctype html>
-<html lang="en" class="h-100">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Chief Clerk Registration &middot; Lapar Smart</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link href="{{ url_for('static', filename='vendor/dashboard/css/style.css') }}" rel="stylesheet">
-  <link href="{{ url_for('static', filename='css/lapar.css') }}" rel="stylesheet">
-</head>
-<body class="h-100">
-  <div class="authincation h-100 lapar-page-body">
-    <div class="container h-100">
-      <div class="row justify-content-center h-100 align-items-center">
-        <div class="col-12 col-md-6 col-xl-4">
-          <div class="card login-card shadow-sm">
-            <div class="card-body p-4">
-              <div class="text-center mb-4">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Lapar Smart" class="lapar-logo-img mb-2">
-                <h3 class="fw-bold mb-0">Chief Clerk Registration</h3>
-                <p class="text-muted small">Lapar Smart &middot; Lazaria Cafe</p>
-              </div>
-              {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
-              {% if success %}<div class="alert alert-success">{{ success }}</div>{% endif %}
-              {% if not success %}
-              <p class="text-muted small">
-                For FAMA Chief Clerks (CC) who order meeting-room catering.
-                Register once, then log in with your Staff ID and password.
-              </p>
-              <form method="post">
-                <div class="form-group mb-3">
-                  <label class="mb-1 text-black">Staff ID</label>
-                  <input type="text" name="staff_id" class="form-control" value="{{ request.form.get('staff_id', '') }}" autofocus required>
-                </div>
-                <div class="form-group mb-3">
-                  <label class="mb-1 text-black">Staff Name</label>
-                  <input type="text" name="name" class="form-control" value="{{ request.form.get('name', '') }}" required>
-                </div>
-                <div class="form-group mb-3">
-                  <label class="mb-1 text-black">Department</label>
-                  <input type="text" name="department" class="form-control" value="{{ request.form.get('department', '') }}" required>
-                </div>
-                <div class="form-group mb-3">
-                  <label class="mb-1 text-black">Email (order-ready alerts)</label>
-                  <input type="email" name="email" class="form-control" placeholder="name@gmail.com" value="{{ request.form.get('email', '') }}" required>
-                </div>
-                <div class="form-group mb-3">
-                  <label class="mb-1 text-black">Choose Password</label>
-                  <input type="password" name="password" class="form-control" minlength="8" required>
-                </div>
-                <div class="form-group mb-3">
-                  <label class="mb-1 text-black">Confirm Password</label>
-                  <input type="password" name="confirm_password" class="form-control" minlength="8" required>
-                </div>
-                <div class="text-center">
-                  <button type="submit" class="btn btn-primary btn-block w-100">Register</button>
-                </div>
-              </form>
-              {% endif %}
-              <div class="text-center mt-3">
-                <a href="{{ url_for('staff.cc_login') }}" class="text-muted small"><i class="fa-solid fa-arrow-left me-1"></i>Back to login</a>
-              </div>
-            </div>
-          </div>
-        </div>
+{% extends "auth_base.html" %}
+{% from "_auth_macros.html" import done %}
+{% block title %}Chief Clerk Registration{% endblock %}
+{% block auth_label %}Chief Clerk (CC){% endblock %}
+{% block auth_title %}{{ 'Registration Completed' if success else 'Chief Clerk Registration' }}{% endblock %}
+{% block auth_body %}
+{% if success %}
+  {{ done(success, url_for('staff.cc_login'), 'Go to Login') }}
+{% else %}
+  {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+  <p class="lapar-auth-sub">
+    For FAMA Chief Clerks (CC) who order meeting-room catering.
+    Register once, then log in with your Staff ID and password.
+  </p>
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-sm-6">
+        <label class="form-label">Staff ID</label>
+        <input type="text" name="staff_id" class="form-control" value="{{ request.form.get('staff_id', '') }}" autofocus required>
+      </div>
+      <div class="col-sm-6">
+        <label class="form-label">Staff Name</label>
+        <input type="text" name="name" class="form-control" value="{{ request.form.get('name', '') }}" required>
+      </div>
+      <div class="col-sm-6">
+        <label class="form-label">Department</label>
+        <input type="text" name="department" class="form-control" value="{{ request.form.get('department', '') }}" required>
+      </div>
+      <div class="col-sm-6">
+        <label class="form-label">Email (order-ready alerts)</label>
+        <input type="email" name="email" class="form-control" placeholder="name@gmail.com" value="{{ request.form.get('email', '') }}" required>
+      </div>
+      <div class="col-sm-6">
+        <label class="form-label">Choose Password</label>
+        <input type="password" name="password" class="form-control" minlength="8" required>
+      </div>
+      <div class="col-sm-6">
+        <label class="form-label">Confirm Password</label>
+        <input type="password" name="confirm_password" class="form-control" minlength="8" required>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary btn-rounded w-100">Register</button>
       </div>
     </div>
-  </div>
-</body>
-</html>
+  </form>
+  <p class="lapar-auth-links"><a href="{{ url_for('staff.cc_login') }}"><i class="fa-solid fa-arrow-left me-1"></i>Back to login</a></p>
+{% endif %}
+{% endblock %}

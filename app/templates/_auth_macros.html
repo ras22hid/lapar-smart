@@ -1,0 +1,8 @@
+{# A finished state (registration completed, link sent, password updated): big tick, the message, one button. #}
+{% macro done(message, button_url, button_text, icon="fa-circle-check") %}
+<div class="lapar-auth-done">
+  <div class="lapar-auth-done-icon"><i class="fa-solid {{ icon }}"></i></div>
+  <p class="lapar-auth-done-text">{{ message }}</p>
+  <a href="{{ button_url }}" class="btn btn-primary btn-rounded px-4">{{ button_text }}</a>
+</div>
+{% endmacro %}

@@ -115,6 +115,22 @@ def qr_data_uri(target_url):
         return None
 
 
+from functools import lru_cache
+
+
+@lru_cache(maxsize=8)
+def _cached_qr(target_url):
+    return qr_data_uri(target_url)
+
+
+@staff_bp.app_context_processor
+def inject_landing_qr():
+    """The login, registration and message pages repeat the homepage hero, QR code included."""
+    def landing_qr():
+        return _cached_qr(request.host_url.rstrip("/") + url_for("staff.menu"))
+    return {"landing_qr": landing_qr}
+
+
 @staff_bp.route("/")
 def landing():
     """UC1: Scan QR Code - landing page that a physical QR code points to."""

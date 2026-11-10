@@ -750,3 +750,32 @@ body.lapar-body .lapar-footer {
 
 .lapar-package-list { margin: 0 0 .25rem 1.1rem; padding: 0; font-size: .85rem; }
 .lapar-package-list li { margin-bottom: .15rem; }
+
+/* ---------------- Login, registration and message pages ----------------
+   Same hero as the homepage; the "Today's picks" column becomes this card. */
+.lapar-auth-card {
+  padding: 26px 26px 22px;
+  background: rgba(247, 236, 217, 0.08);
+  border: 1px solid rgba(232, 212, 169, 0.18);
+  border-radius: 22px;
+  color: var(--lapar-cream-text);
+  backdrop-filter: blur(4px);
+}
+.lapar-auth-title {
+  font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  font-weight: 700; font-size: 1.9rem; line-height: 1.15;
+  color: var(--lapar-cream-text); margin: 0 0 14px;
+}
+.lapar-auth-sub { font-size: 0.9rem; line-height: 1.55; color: var(--lapar-muted-on-brown); margin-bottom: 16px; }
+.lapar-auth-card .form-label { color: var(--lapar-cream); font-size: 0.82rem; font-weight: 500; margin-bottom: 4px; }
+.lapar-auth-card .form-control {
+  background: #fff; color: #2b1d14; border: 1px solid transparent; border-radius: 12px; height: 46px;
+}
+.lapar-auth-card .form-control:focus { border-color: var(--lapar-cream); box-shadow: 0 0 0 3px rgba(232, 212, 169, 0.25); }
+.lapar-auth-card .alert { border-radius: 12px; font-size: 0.9rem; }
+.lapar-auth-links { margin: 14px 0 0; text-align: center; font-size: 0.85rem; color: var(--lapar-muted-on-brown); }
+.lapar-auth-links a { color: var(--lapar-cream); text-decoration: underline; text-underline-offset: 3px; }
+.lapar-auth-links a:hover { color: #fff; }
+.lapar-auth-done { text-align: center; padding: 6px 0 4px; }
+.lapar-auth-done-icon { font-size: 3.2rem; line-height: 1; color: var(--lapar-cream); margin-bottom: 14px; }
+.lapar-auth-done-text { font-size: 1rem; line-height: 1.6; color: var(--lapar-cream-text); margin-bottom: 20px; }

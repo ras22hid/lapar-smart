@@ -6,30 +6,7 @@
 <section class="lapar-landing">
   <div class="row align-items-center g-4 g-xl-5">
     <div class="col-xl-7">
-      <span class="lapar-landing-eyebrow"><i class="fa-solid fa-mug-hot me-2"></i>Lazaria Cafe &middot; FAMA</span>
-      <h1 class="lapar-landing-title">Lapar <span class="lapar-landing-accent">Smart</span><br>Scan, Order &amp; Enjoy</h1>
-      <p class="lapar-landing-lead">
-        Skip the counter queue. Scan the QR code with your phone camera, choose from today's menu,
-        and get an alert on your phone when your order is ready for collection.
-      </p>
-      <div class="d-flex flex-wrap gap-2 mb-4">
-        <a href="{{ url_for('staff.catering') }}" class="btn btn-primary btn-rounded px-4"><i class="fa-solid fa-calendar-check me-2"></i>Meeting Order</a>
-        <a href="{{ url_for('admin.login') }}" class="btn btn-outline-light btn-rounded px-4"><i class="fa-solid fa-user-shield me-2"></i>Cafe Admin</a>
-      </div>
-
-      <a href="{{ url_for('staff.survey') }}" class="lapar-landing-survey"><i class="fa-solid fa-clipboard-list me-2"></i>FAMA staff: take our 1-minute survey</a>
-
-      {% if qr_uri %}
-      <div class="lapar-landing-scan">
-        <div class="lapar-phone">
-          <img src="{{ qr_uri }}" alt="QR code to Lapar Smart menu" width="150" height="150">
-        </div>
-        <div>
-          <div class="lapar-landing-scan-title">Scan to open today's menu</div>
-          <div class="lapar-landing-scan-sub"><i class="fa-solid fa-qrcode me-1"></i> UC1 &middot; Scan QR Code</div>
-        </div>
-      </div>
-      {% endif %}
+      {% include "_landing_left.html" %}
     </div>
 
     <div class="col-xl-5">

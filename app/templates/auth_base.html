@@ -1,0 +1,22 @@
+{# Layout for the login, registration and message pages. It is the homepage hero with the
+   "Today's picks" part replaced by a card that holds the form or the message. #}
+{% extends "base.html" %}
+{% block left_panel %}{% endblock %}
+{% block right_panel %}{% endblock %}
+{% block content %}
+<section class="lapar-landing">
+  <div class="row align-items-center g-4 g-xl-5">
+    <div class="col-xl-7">
+      {% include "_landing_left.html" %}
+    </div>
+
+    <div class="col-xl-5">
+      <div class="lapar-auth-card">
+        <div class="lapar-picks-title">{% block auth_label %}{% endblock %}</div>
+        <h2 class="lapar-auth-title">{% block auth_title %}{% endblock %}</h2>
+        {% block auth_body %}{% endblock %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
