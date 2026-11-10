@@ -9,3 +9,5 @@ instance/
 
 .vercel
 .env*
+
+tests/output/
