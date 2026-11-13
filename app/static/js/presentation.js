@@ -10,7 +10,7 @@
 
   // ---------------------------------------------------------------- animation helpers
   // Give every repeated item its position in its group, so the CSS can stagger it.
-  const GROUPS = [".stats", ".cards", ".points", ".bullets", ".steps", "tbody", ".col ul", ".t-meta"];
+  const GROUPS = [".stats", ".cards", ".points", ".bullets", ".steps", "tbody", ".col ul", ".t-meta", ".numbered", ".checks"];
   slides.forEach((s) => {
     GROUPS.forEach((sel) => s.querySelectorAll(sel).forEach((g) => {
       Array.from(g.children).forEach((el, k) => el.style.setProperty("--i", k));

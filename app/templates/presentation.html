@@ -61,9 +61,10 @@
 
       {% elif s.type == 'table' %}
       <div class="table-wrap">
-        <table>
+        <table{% if s.compact %} class="compact"{% endif %}>
+          {% if s.widths %}<colgroup>{% for w in s.widths %}<col style="width: {{ (w * 100)|round(1) }}%">{% endfor %}</colgroup>{% endif %}
           <thead><tr>{% for c in s.columns %}<th>{{ c }}</th>{% endfor %}</tr></thead>
-          <tbody>{% for r in s.rows %}<tr{% if loop.first and s.columns[0] == 'System' %} class="hl"{% endif %}>{% for c in r %}<td>{{ c }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+          <tbody>{% for r in s.rows %}<tr{% if loop.first and s.highlightFirst %} class="hl"{% endif %}>{% for c in r %}<td{% if c == 'Achieved' %} class="ok"{% endif %}>{% if c == 'Achieved' %}<i class="fa-solid fa-circle-check"></i> {% endif %}{{ c }}</td>{% endfor %}</tr>{% endfor %}</tbody>
         </table>
       </div>
 
@@ -84,6 +85,25 @@
       <div class="split">
         <ul class="bullets">{% for b in s.bullets %}<li>{{ b }}</li>{% endfor %}</ul>
         <div class="split-img"><img class="shot" src="{{ url_for('static', filename=img ~ s.image) }}" alt="{{ s.title }}"></div>
+      </div>
+
+      {% elif s.type == 'numbered' %}
+      <ol class="numbered {{ 'two-col' if s['items']|length > 3 else 'one-col' }}">
+        {% for it in s['items'] %}
+        <li><span class="num">{{ loop.index }}</span><div><h3>{{ it.head }}</h3><p>{{ it.text }}</p></div></li>
+        {% endfor %}
+      </ol>
+
+      {% elif s.type == 'checks' %}
+      <div class="checks">
+        {% for it in s['items'] %}
+        <div class="check">
+          <span class="check-uc">{{ it.uc }}</span>
+          <span class="check-name">{{ it.name }}</span>
+          <span class="check-tag">FT-{{ it.n }}</span><span class="check-tag">RT-{{ it.n }}</span>
+          <span class="check-ok"><i class="fa-solid fa-circle-check"></i>Pass</span>
+        </div>
+        {% endfor %}
       </div>
 
       {% elif s.type == 'compare' %}

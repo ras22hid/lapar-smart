@@ -4,94 +4,327 @@
     "author": "Abdul Rashid Alias (B24030058)",
     "url": "lapar-smart-tawny.vercel.app"
   },
-  "sections": ["Introduction", "Method and Design", "The System", "Results", "Conclusion"],
   "slides": [
     {
-      "type": "title", "section": "Introduction",
+      "type": "title",
+      "section": "Introduction",
       "eyebrow": "Final Year Project Presentation",
       "title": "Lapar Smart",
       "subtitle": "QR Menu Ordering System for Lazaria Cafe, FAMA",
-      "meta": ["Abdul Rashid Alias (B24030058)", "Supervisor: Dr Ang Ling Weay (Fiona)", "BIT4008 Undergraduate Project, Malaysia University of Science and Technology"],
+      "meta": [
+        "Abdul Rashid Alias (B24030058)",
+        "Supervisor: Dr Ang Ling Weay (Fiona)",
+        "BIT4008 Undergraduate Project, Malaysia University of Science and Technology"
+      ],
       "image": "home.jpg",
-      "notes": "Introduce the project: a QR-accessed mobile web application that replaces verbal ordering at the Lazaria Cafe counter."
+      "notes": "Introduce the project: a QR-accessed mobile web application for ordering at the Lazaria Cafe counter. The talk follows the research: literature, problem, evidence, objectives, method, system, testing and conclusion."
     },
     {
-      "type": "stats", "section": "Introduction",
-      "title": "Ordering at the counter costs staff their break",
-      "lead": "Lazaria Cafe takes orders by voice at the counter. A questionnaire answered by 30 FAMA administrative assistants shows what that costs.",
-      "stats": [
-        {"value": "36.7%", "label": "waited 11 minutes or longer in the queue"},
-        {"value": "60.0%", "label": "received a wrong order at least once"},
-        {"value": "93.3%", "label": "find an order-ready notification useful"},
-        {"value": "76.7%", "label": "want to pre-order catering for meetings"}
-      ],
-      "note": "Source: questionnaire, N = 30 (Table 3.1 of the report)",
-      "notes": "Long queues, misheard orders, no way to track an order, and meeting catering arranged by phone."
-    },
-    {
-      "type": "cards", "section": "Introduction",
-      "title": "One aim, four objectives",
-      "lead": "Design and develop a QR-accessed mobile web application for menu ordering at Lazaria Cafe, FAMA.",
+      "type": "cards",
+      "section": "Literature Review",
+      "title": "Three ways a cafe can take orders",
+      "lead": "The literature review compared the current manual practice with two digital approaches.",
       "cards": [
-        {"icon": "fa-qrcode", "head": "QR ordering", "text": "Staff scan a QR code, view the daily menu and place an order for collection."},
-        {"icon": "fa-user-shield", "head": "Admin module", "text": "The cafe admin updates the daily menu and the status of every order."},
-        {"icon": "fa-bell", "head": "Order-ready alert", "text": "An in-app alert on the status page and an email sent through Gmail."},
-        {"icon": "fa-calendar-check", "head": "Meeting-room orders", "text": "A Chief Clerk pre-orders a catering package and is emailed at every status."}
+        {
+          "icon": "fa-comments",
+          "head": "Manual ordering",
+          "text": "Orders are given by voice at the counter. It needs no technology, but depends on human accuracy, keeps no record, and shows no progress (Jalaludin et al., 2023)."
+        },
+        {
+          "icon": "fa-globe",
+          "head": "Web menu system",
+          "text": "Orders are placed in a browser with no app to install, as in the UiTM Tapah and UTHM cafeterias. Browser push alerts are limited (AWS, 2026)."
+        },
+        {
+          "icon": "fa-qrcode",
+          "head": "QR menu ordering",
+          "text": "A QR code opens the menu at once. Users find it quick and easy (Shahril et al., 2024), but its value comes from the features behind the code."
+        }
       ],
-      "notes": "The four objectives from Chapter 1."
+      "notes": "Section 2.2.1 to 2.2.3 of the report."
     },
     {
-      "type": "table", "section": "Introduction",
-      "title": "Commercial QR systems leave a gap",
-      "columns": ["System", "Order tracking", "Order-ready alert", "Meeting-room pre-order", "Cost"],
+      "type": "table",
+      "section": "Literature Review",
+      "title": "Existing systems serve restaurants",
+      "columns": [
+        "System",
+        "Order tracking",
+        "Order-ready alert",
+        "Meeting-room pre-order",
+        "Built for"
+      ],
+      "widths": [
+        0.17,
+        0.19,
+        0.21,
+        0.23,
+        0.2
+      ],
+      "highlightFirst": true,
       "rows": [
-        ["Lapar Smart", "Yes, status page", "In-app and email", "Yes, Chief Clerk", "No licence fee"],
-        ["Eats365", "Not stated", "Not stated", "Not stated", "Modular plans"],
-        ["StoreHub", "Not stated", "Not stated", "Not stated", "Not stated"],
-        ["EPOS360", "Not stated", "Not stated", "Not stated", "12-month plan"]
+        [
+          "Lapar Smart",
+          "Yes, status page",
+          "In-app and email",
+          "Yes, Chief Clerk",
+          "In-house staff cafe"
+        ],
+        [
+          "Eats365",
+          "Not stated",
+          "Not stated",
+          "Not stated",
+          "Restaurant POS"
+        ],
+        [
+          "StoreHub",
+          "Not stated",
+          "Not stated",
+          "Not stated",
+          "Restaurant POS"
+        ],
+        [
+          "EPOS360",
+          "Not stated",
+          "Not stated",
+          "Not stated",
+          "Restaurant POS"
+        ]
       ],
-      "note": "Not stated: the vendor pages reviewed do not mention the feature. The three products are POS platforms built for restaurants, not for an in-house staff cafe.",
-      "notes": "Research gap: a lightweight system with a daily menu, meeting-room pre-orders and order tracking with an alert, without a POS subscription."
+      "note": "Research gap: no lightweight system was found that combines a daily menu run by the cafe, meeting-room catering pre-orders, and order tracking with an alert, without a POS subscription.",
+      "notes": "Sections 2.2.4 to 2.2.6. Not stated means the vendor pages reviewed do not mention the feature."
     },
     {
-      "type": "steps", "section": "Method and Design",
+      "type": "numbered",
+      "section": "Problem Statement",
+      "title": "Five problems with ordering at Lazaria Cafe",
+      "items": [
+        {
+          "head": "Long queues",
+          "text": "The counter is congested at peak hours, so staff lose their short break waiting."
+        },
+        {
+          "head": "Wrong orders",
+          "text": "Orders given by voice are misheard, and the wrong food is prepared."
+        },
+        {
+          "head": "No order tracking",
+          "text": "Staff wait at the counter because they are not told when the order is ready."
+        },
+        {
+          "head": "A menu that changes daily",
+          "text": "The cafe admin has no quick digital way to publish the day's menu."
+        },
+        {
+          "head": "Catering by phone",
+          "text": "Meeting-room catering is arranged by phone, so details are delayed or inaccurate."
+        }
+      ],
+      "notes": "Section 2.1. The next two slides check these problems with the users."
+    },
+    {
+      "type": "stats",
+      "section": "Questionnaire",
+      "title": "The questionnaire confirms the problems",
+      "lead": "30 administrative assistants (Pembantu Tadbir) at FAMA headquarters answered a five-question online form shared through WhatsApp.",
+      "stats": [
+        {
+          "value": "36.7%",
+          "label": "waited 11 minutes or longer in the queue"
+        },
+        {
+          "value": "60.0%",
+          "label": "received a wrong order at least once"
+        },
+        {
+          "value": "93.3%",
+          "label": "find an order-ready notification useful"
+        },
+        {
+          "value": "76.7%",
+          "label": "want to pre-order catering for meetings"
+        }
+      ],
+      "note": "Purposive sample of 30 respondents (Table 3.1 and Appendix D of the report).",
+      "notes": "73.3% buy from the cafe three or more times a week, so the queue affects most of them."
+    },
+    {
+      "type": "numbered",
+      "section": "Interview",
+      "title": "The cafe admin describes the same problems",
+      "lead": "A face-to-face interview with the Lazaria Cafe admin, held in Malay on 9 November 2026.",
+      "items": [
+        {
+          "head": "Daily menu",
+          "text": "The menu is decided every morning from a monthly schedule."
+        },
+        {
+          "head": "Counter at lunch time",
+          "text": "The queue is long, and noise makes the admin repeat questions."
+        },
+        {
+          "head": "Meeting requests",
+          "text": "They come by phone a day or two ahead, are written on paper, and the headcount often changes."
+        },
+        {
+          "head": "Main challenges",
+          "text": "Misheard orders, long queues, knowing who has paid, and keeping track of meeting bookings."
+        }
+      ],
+      "notes": "Section 3.2.2 and Appendix A."
+    },
+    {
+      "type": "table",
+      "section": "Objectives",
+      "title": "The findings set four objectives",
+      "lead": "Aim: a QR-accessed mobile web application for ordering at Lazaria Cafe, FAMA.",
+      "columns": [
+        "Evidence from the questionnaire and interview",
+        "Objective of the system"
+      ],
+      "widths": [
+        0.52,
+        0.48
+      ],
+      "rows": [
+        [
+          "36.7% waited 11 minutes or more; long queues at lunch time",
+          "1. Staff scan a QR code, view the daily menu and order from their phone"
+        ],
+        [
+          "60.0% got a wrong order; the menu changes every morning",
+          "2. An admin module to update the daily menu and the status of each order"
+        ],
+        [
+          "93.3% want a notification; staff now wait at the counter",
+          "3. An order-ready alert in the app and by email"
+        ],
+        [
+          "76.7% want to pre-order; meeting requests are kept on paper",
+          "4. Meeting-room catering pre-orders by a Chief Clerk"
+        ]
+      ],
+      "notes": "Objectives from Section 1.2, each traced back to the evidence."
+    },
+    {
+      "type": "steps",
+      "section": "Methodology",
       "title": "Agile Scrum in six sprints over ten weeks",
       "steps": [
-        {"head": "Planning", "when": "14 to 21 Sep", "text": "Proposal, backlog, Gantt chart"},
-        {"head": "Analysis and design", "when": "21 Sep to 6 Oct", "text": "Requirements, UI wireframes"},
-        {"head": "Core development", "when": "7 to 27 Oct", "text": "Ordering, admin, catering"},
-        {"head": "Enhancement", "when": "28 Oct to 3 Nov", "text": "UI and feature refinements"},
-        {"head": "Testing", "when": "4 to 11 Nov", "text": "Functional and regression tests"},
-        {"head": "Deployment", "when": "12 to 20 Nov", "text": "Vercel release, final report"}
+        {
+          "head": "Planning",
+          "when": "14 to 21 Sep",
+          "text": "Proposal, backlog, Gantt chart"
+        },
+        {
+          "head": "Analysis and design",
+          "when": "21 Sep to 6 Oct",
+          "text": "Requirements, UI wireframes"
+        },
+        {
+          "head": "Core development",
+          "when": "7 to 27 Oct",
+          "text": "Ordering, admin, catering"
+        },
+        {
+          "head": "Enhancement",
+          "when": "28 Oct to 3 Nov",
+          "text": "UI and feature refinements"
+        },
+        {
+          "head": "Testing",
+          "when": "4 to 11 Nov",
+          "text": "Functional and regression tests"
+        },
+        {
+          "head": "Deployment",
+          "when": "12 to 20 Nov",
+          "text": "Vercel release, final report"
+        }
       ],
-      "note": "One developer acting as product owner, Scrum Master and developer, with a self-review at the end of every sprint.",
-      "notes": "Scrum gave room for re-planning after each sprint review."
+      "note": "One developer acts as product owner, Scrum Master and developer, with a self-review at the end of every sprint.",
+      "notes": "Scrum leaves room to re-plan after each sprint review."
     },
     {
-      "type": "cards", "section": "Method and Design",
-      "title": "Three kinds of user, fourteen use cases",
-      "lead": "15 functional and 4 non-functional requirements, each traced to a use case and a pair of tests.",
+      "type": "cards",
+      "section": "Methodology",
+      "title": "From requirements to a tested design",
       "cards": [
-        {"icon": "fa-mobile-screen", "head": "FAMA Staff", "text": "Scan the QR code, browse the menu, place a counter order and track it. No login."},
-        {"icon": "fa-user-tie", "head": "Chief Clerk (CC)", "text": "Registers and logs in with a Staff ID to order meeting-room catering."},
-        {"icon": "fa-user-shield", "head": "Cafe Admin", "text": "Manages the daily menu, orders, order status and Cafe Admin accounts."}
+        {
+          "icon": "fa-clipboard-list",
+          "head": "Data collection",
+          "text": "A questionnaire for FAMA staff and an interview with the cafe admin set the requirements."
+        },
+        {
+          "icon": "fa-diagram-project",
+          "head": "UML modelling",
+          "text": "Use case, sequence, class, entity relationship, architecture and data flow diagrams."
+        },
+        {
+          "icon": "fa-list-check",
+          "head": "Requirements",
+          "text": "15 functional and 4 non-functional requirements, each linked to a use case."
+        },
+        {
+          "icon": "fa-vial",
+          "head": "Testing method",
+          "text": "A functional test and a regression test for every one of the 14 use cases."
+        }
+      ],
+      "notes": "Sections 3.2 to 3.4."
+    },
+    {
+      "type": "cards",
+      "section": "Methodology",
+      "title": "Three kinds of user, fourteen use cases",
+      "cards": [
+        {
+          "icon": "fa-mobile-screen",
+          "head": "FAMA Staff",
+          "text": "Scan the QR code, browse the menu, place a counter order and track it. No login."
+        },
+        {
+          "icon": "fa-user-tie",
+          "head": "Chief Clerk (CC)",
+          "text": "Registers and logs in with a Staff ID to order meeting-room catering."
+        },
+        {
+          "icon": "fa-user-shield",
+          "head": "Cafe Admin",
+          "text": "Manages the daily menu, orders, order status and Cafe Admin accounts."
+        }
       ],
       "notes": "The Chief Clerk is a specialisation of FAMA Staff in the use case diagram."
     },
     {
-      "type": "figure", "section": "Method and Design",
+      "type": "figure",
+      "section": "Implementation",
       "title": "A three-tier architecture on free cloud tiers",
       "image": "architecture.png",
       "points": [
-        {"head": "Presentation", "text": "Server-rendered pages for phone browsers"},
-        {"head": "Application", "text": "Python Flask on Vercel serverless"},
-        {"head": "Data", "text": "Turso (libSQL), SQLite in development"},
-        {"head": "Email", "text": "Gmail SMTP for alerts and resets"}
+        {
+          "head": "Presentation",
+          "text": "Server-rendered pages for phone browsers"
+        },
+        {
+          "head": "Application",
+          "text": "Python Flask on Vercel serverless"
+        },
+        {
+          "head": "Data",
+          "text": "Turso (libSQL), SQLite in development"
+        },
+        {
+          "head": "Email",
+          "text": "Gmail SMTP for alerts and resets"
+        }
       ],
       "notes": "Turso replaced a local SQLite file because the Vercel file system is not persistent."
     },
     {
-      "type": "split", "section": "The System",
+      "type": "split",
+      "section": "Implementation",
       "title": "Staff order from their phone in three steps",
       "image": "menu.jpg",
       "bullets": [
@@ -100,10 +333,11 @@
         "Review the order and enter Staff ID, name, department, phone and email.",
         "The server re-reads every price, so the browser is never trusted."
       ],
-      "notes": "Use cases Scan QR Code, View Daily Menu, Place Order and Review Order."
+      "notes": "Objective 1. Use cases Scan QR Code, View Daily Menu, Place Order and Review Order."
     },
     {
-      "type": "split", "section": "The System",
+      "type": "split",
+      "section": "Implementation",
       "title": "The order is tracked until it is ready",
       "image": "status.jpg",
       "bullets": [
@@ -112,10 +346,11 @@
         "An email is sent through Gmail, so the alert arrives even when the page is closed.",
         "Payment is made at the counter on collection."
       ],
-      "notes": "Use case Receive Order Notification."
+      "notes": "Objective 3. Use case Receive Order Notification."
     },
     {
-      "type": "split", "section": "The System",
+      "type": "split",
+      "section": "Implementation",
       "title": "Chief Clerks reserve catering for meeting rooms",
       "image": "catering.jpg",
       "bullets": [
@@ -125,10 +360,11 @@
         "An email follows at Pending, Preparing, Ready and Completed.",
         "At Ready, cafe staff deliver the order to the meeting room."
       ],
-      "notes": "Use case Reserve Meeting Room Order. Only an account with the CC role can see the packages."
+      "notes": "Objective 4. Use case Reserve Meeting Room Order."
     },
     {
-      "type": "split", "section": "The System",
+      "type": "split",
+      "section": "Implementation",
       "title": "The cafe admin runs the day from one dashboard",
       "image": "admin.jpg",
       "bullets": [
@@ -137,93 +373,230 @@
         "Add, hide or delete items on the daily menu.",
         "Manage Cafe Admin accounts, with registration and password reset by email."
       ],
-      "notes": "Use cases View Orders, Update Order Status, Mark Order Completed, Update Daily Menu and Manage Cafe Admins."
+      "notes": "Objective 2. Use cases View Orders, Update Order Status, Mark Order Completed, Update Daily Menu and Manage Cafe Admins."
     },
     {
-      "type": "cards", "section": "The System",
-      "title": "Security is built into every request",
-      "cards": [
-        {"icon": "fa-key", "head": "Passwords and sessions", "text": "Salted password hashes and a signed session cookie for admins and Chief Clerks."},
-        {"icon": "fa-lock", "head": "Access by role", "text": "Admin pages need an admin login. Meeting orders need a Chief Clerk login."},
-        {"icon": "fa-list-check", "head": "Server-side validation", "text": "Prices are re-read from the database and every staff detail is checked."},
-        {"icon": "fa-database", "head": "Data integrity", "text": "Parameterised SQL, foreign keys, HTTPS and secrets kept in environment variables."}
+      "type": "checks",
+      "section": "Testing",
+      "title": "Every use case passed its tests",
+      "items": [
+        {
+          "uc": "UC1",
+          "name": "Scan QR Code",
+          "n": "01"
+        },
+        {
+          "uc": "UC2",
+          "name": "View Daily Menu",
+          "n": "02"
+        },
+        {
+          "uc": "UC3",
+          "name": "Place Order",
+          "n": "03"
+        },
+        {
+          "uc": "UC4",
+          "name": "Reserve Meeting Room Order",
+          "n": "04"
+        },
+        {
+          "uc": "UC5",
+          "name": "Receive Order Notification",
+          "n": "05"
+        },
+        {
+          "uc": "UC6",
+          "name": "Mark Order Completed",
+          "n": "06"
+        },
+        {
+          "uc": "UC7",
+          "name": "Update Daily Menu",
+          "n": "07"
+        },
+        {
+          "uc": "UC8",
+          "name": "View Orders",
+          "n": "08"
+        },
+        {
+          "uc": "UC9",
+          "name": "Update Order Status",
+          "n": "09"
+        },
+        {
+          "uc": "UC10",
+          "name": "Manage Cafe Admins",
+          "n": "10"
+        },
+        {
+          "uc": "UC11",
+          "name": "Register Admin",
+          "n": "11"
+        },
+        {
+          "uc": "UC12",
+          "name": "Forgot Password",
+          "n": "12"
+        },
+        {
+          "uc": "UC13",
+          "name": "Review Order",
+          "n": "13"
+        },
+        {
+          "uc": "UC14",
+          "name": "Login",
+          "n": "14"
+        }
       ],
-      "notes": "Section 4.4 of the report. Known limitations are listed in Section 4.4.5."
+      "note": "Each test was run through the user interface on the final build and compared with its expected output (Chapter 5 and Appendix C).",
+      "notes": "FT is the functional test and RT the regression test of each use case."
     },
     {
-      "type": "stats", "section": "Results",
-      "title": "Every test case passed on the final build",
-      "lead": "Each of the fourteen use cases has one functional and one regression test, run through a real browser.",
-      "stats": [
-        {"value": "28/28", "label": "manual test cases passed, 14 functional and 14 regression"},
-        {"value": "138", "label": "automated regression checks passed"},
-        {"value": "21", "label": "access-control checks passed"},
-        {"value": "1", "label": "command runs the whole suite, on every push"}
+      "type": "table",
+      "section": "Testing",
+      "title": "Every objective is achieved",
+      "columns": [
+        "Objective",
+        "Use cases",
+        "Requirements",
+        "Tests",
+        "Status"
       ],
-      "note": "Build 7cf361b, tested on 9 November 2026 (Chapter 5 and Appendix C)",
-      "notes": "Gmail is replaced by a stub in the automated tests. Delivery was shown separately on the production deployment."
-    },
-    {
-      "type": "stats", "section": "Results",
-      "title": "Fast enough for the lunch-hour queue",
-      "lead": "Measured on the production deployment after the function was moved next to the database.",
-      "stats": [
-        {"value": "0.18 s", "label": "menu load, against a target of under 3 s"},
-        {"value": "0.37 s", "label": "order submission, against a target of under 5 s"},
-        {"value": "3.2 s", "label": "worst-case delay of the in-app alert"},
-        {"value": "3.3 s", "label": "menu load before the fix, now about 0.2 s"}
+      "widths": [
+        0.22,
+        0.32,
+        0.16,
+        0.18,
+        0.12
       ],
-      "note": "Means from warm instances on one network, 9 November 2026. Cold starts were not measured.",
-      "notes": "The delay came from the function running in Washington while the database is in Mumbai."
-    },
-    {
-      "type": "table", "section": "Results",
-      "title": "Three of four quality requirements are verified",
-      "columns": ["Requirement", "How it was checked", "Status"],
+      "compact": true,
       "rows": [
-        ["NFR1 Usability", "User acceptance test, not carried out", "Not verified"],
-        ["NFR2 Performance", "Timed requests on the production deployment", "Met"],
-        ["NFR3 Reliability", "85 simultaneous orders on a local database, none lost", "Partially verified"],
-        ["NFR4 Security", "21 access-control checks", "Met"]
+        [
+          "1. QR ordering",
+          "Scan QR Code, View Daily Menu, Place Order, Review Order",
+          "FR1 to FR3, FR13",
+          "FT and RT 01, 02, 03, 13",
+          "Achieved"
+        ],
+        [
+          "2. Admin module",
+          "Update Daily Menu, View Orders, Update Order Status, Mark Completed, Manage Admins, Register, Forgot Password, Login",
+          "FR6 to FR12, NFR4",
+          "FT and RT 06 to 12, 14",
+          "Achieved"
+        ],
+        [
+          "3. Order-ready alert",
+          "Receive Order Notification",
+          "FR5, FR15",
+          "FT and RT 05",
+          "Achieved"
+        ],
+        [
+          "4. Meeting-room orders",
+          "Reserve Meeting Room Order",
+          "FR4, FR14",
+          "FT and RT 04",
+          "Achieved"
+        ]
       ],
-      "note": "All fourteen use cases are marked Achieved in the traceability matrix (Table 5.5).",
-      "notes": "A UAT with 10 to 15 FAMA staff and the SUS questionnaire is recommended as future work."
+      "note": "Objective 3 is achieved with an in-app alert, shown while the status page is open, and an email alert (Table 5.5 of the report).",
+      "notes": "Each objective is traced to its use cases, requirements and test cases.",
+      "lead": "The traceability matrix links each objective to its use cases, requirements and test cases."
     },
     {
-      "type": "compare", "section": "Conclusion",
-      "title": "What works today, and what does not yet",
-      "left": {"head": "Strengths", "items": [
-        "Orders are placed from a phone, not in a queue",
-        "Digital orders replace verbal ordering",
-        "Alerts in the app and by email",
-        "Daily menu and order status in one dashboard",
-        "Meeting-room catering with a Chief Clerk login"
-      ]},
-      "right": {"head": "Limitations", "items": [
-        "Payment is still made at the counter",
-        "No user acceptance test has been run",
-        "Staff identity is self-reported",
-        "The in-app alert needs the status page open",
-        "Load was tested on a local database only"
-      ]},
-      "notes": "Sections 6.1 and 6.2."
+      "type": "numbered",
+      "section": "Conclusion",
+      "title": "Strengths of the system",
+      "items": [
+        {
+          "head": "Ordering from a phone",
+          "text": "Staff order without queuing at the counter."
+        },
+        {
+          "head": "Accurate orders",
+          "text": "Digital orders replace verbal ordering."
+        },
+        {
+          "head": "Alerts that reach staff",
+          "text": "An in-app alert and an email when the order is ready."
+        },
+        {
+          "head": "One dashboard",
+          "text": "The admin updates the daily menu and every order status in one place."
+        },
+        {
+          "head": "Meeting-room catering",
+          "text": "Chief Clerks pre-order packages instead of phoning the cafe."
+        }
+      ],
+      "notes": "Section 6.1."
     },
     {
-      "type": "cards", "section": "Conclusion",
-      "title": "Next steps for a complete ordering service",
+      "type": "numbered",
+      "section": "Conclusion",
+      "title": "Limitations of the system",
+      "items": [
+        {
+          "head": "Payment at the counter",
+          "text": "No online or e-wallet payment is built in."
+        },
+        {
+          "head": "No user acceptance test",
+          "text": "Usability has not yet been confirmed by FAMA staff."
+        },
+        {
+          "head": "Self-reported identity",
+          "text": "Staff details and Chief Clerk registration are not verified."
+        },
+        {
+          "head": "In-app alert needs the page open",
+          "text": "The email alert covers the case when the page is closed."
+        },
+        {
+          "head": "Load tested locally only",
+          "text": "High order volumes were not tested on the production database."
+        }
+      ],
+      "notes": "Section 6.2."
+    },
+    {
+      "type": "cards",
+      "section": "Conclusion",
+      "title": "Future work",
       "cards": [
-        {"icon": "fa-wallet", "head": "Online payment", "text": "Add an e-wallet or payment gateway so staff can pay in the app."},
-        {"icon": "fa-id-card", "head": "Verified identity", "text": "Check staff identity and approve Chief Clerk registrations."},
-        {"icon": "fa-bell", "head": "Push alerts", "text": "Deliver alerts with Web Push or as a Progressive Web App."},
-        {"icon": "fa-users", "head": "User acceptance test", "text": "Test with FAMA staff and run a production-scale load test."}
+        {
+          "icon": "fa-wallet",
+          "head": "Online payment",
+          "text": "Add an e-wallet or payment gateway so staff can pay in the app."
+        },
+        {
+          "icon": "fa-id-card",
+          "head": "Verified identity",
+          "text": "Check staff identity and approve Chief Clerk registrations."
+        },
+        {
+          "icon": "fa-bell",
+          "head": "Push alerts",
+          "text": "Deliver alerts with Web Push or as a Progressive Web App."
+        },
+        {
+          "icon": "fa-users",
+          "head": "User acceptance test",
+          "text": "Test with FAMA staff and run a production-scale load test."
+        }
       ],
       "notes": "Section 6.3."
     },
     {
-      "type": "closing", "section": "Conclusion",
+      "type": "closing",
+      "section": "Demo",
       "eyebrow": "Live demonstration",
       "title": "Scan, Order & Enjoy",
-      "subtitle": "Objectives 1, 2 and 4 are achieved. Objective 3 is achieved with an in-app alert and an email alert.",
+      "subtitle": "Scan the QR code or open the link to try Lapar Smart.",
       "url": "lapar-smart-tawny.vercel.app",
       "image": "qr.png",
       "thanks": "Thank you. Questions are welcome.",
