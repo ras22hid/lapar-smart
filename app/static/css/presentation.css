@@ -216,6 +216,20 @@ table.compact { font-size: 0.95em; }
 table.compact td, table.compact th { padding: 0.7em 0.9em; vertical-align: top; }
 td.ok { color: #b9e4a6; font-weight: 700; white-space: nowrap; }
 
+/* ---------------------------------------------------------------- test summary grouped by user */
+.groups .card { display: flex; flex-direction: column; }
+.group-list { list-style: none; margin: 0.2em 0 0.9em; padding: 0; }
+.group-list li { position: relative; padding-left: 1.1em; font-size: 1.04em; line-height: 1.6; color: var(--cream-text); }
+.group-list li::before { content: ""; position: absolute; left: 0.1em; top: 0.68em; width: 0.42em; height: 0.42em; border-radius: 50%; background: var(--cream); }
+.group-tag { margin-top: auto; display: inline-flex; align-items: center; gap: 0.45em; font-size: 0.95em; font-weight: 700; color: #b9e4a6; }
+.slide-groups .cards { align-content: start; margin-top: 1.6em; }
+/* outline: headings only */
+.numbered li div h3:only-child { margin: 0.35em 0 0; }
+/* a larger architecture diagram */
+.slide-figure .figure img { max-height: 19.5em; }
+.slide-figure .points { margin-top: 0.9em; }
+.slide-figure .point { padding: 0.65em 1em; }
+
 /* ---------------------------------------------------------------- phone and narrow windows: stacked, scrolling slides */
 @media (max-width: 820px), (orientation: portrait) and (max-width: 1024px) {
   body { overflow: auto; }

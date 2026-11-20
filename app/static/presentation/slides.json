@@ -20,6 +20,46 @@
       "notes": "Introduce the project: a QR-accessed mobile web application for ordering at the Lazaria Cafe counter. The talk follows the research: literature, problem, evidence, objectives, method, system, testing and conclusion."
     },
     {
+      "type": "numbered",
+      "section": "Introduction",
+      "title": "Outline",
+      "items": [
+        {
+          "head": "Literature review",
+          "text": ""
+        },
+        {
+          "head": "Problem statement",
+          "text": ""
+        },
+        {
+          "head": "Evidence: questionnaire and interview",
+          "text": ""
+        },
+        {
+          "head": "Objectives, scope and expected results",
+          "text": ""
+        },
+        {
+          "head": "Methodology",
+          "text": ""
+        },
+        {
+          "head": "Implementation",
+          "text": ""
+        },
+        {
+          "head": "Testing and traceability",
+          "text": ""
+        },
+        {
+          "head": "Conclusion and live demo",
+          "text": ""
+        }
+      ],
+      "notes": "The talk follows the research: what the literature says, the problem, the evidence, the objectives, how the system was built and tested, and what it achieved."
+    },
+    {
       "type": "cards",
       "section": "Literature Review",
       "title": "Three ways a cafe can take orders",
@@ -28,7 +68,7 @@
         {
           "icon": "fa-comments",
           "head": "Manual ordering",
-          "text": "Orders are given by voice at the counter. It needs no technology, but depends on human accuracy, keeps no record, and shows no progress (Jalaludin et al., 2023)."
+          "text": "Orders are given by voice at the counter. It needs no technology, but depends on human accuracy, keeps no record, and shows no progress (Jalaludin et al., 2023)"
         },
         {
           "icon": "fa-globe",
@@ -184,28 +224,57 @@
         "Objective of the system"
       ],
       "widths": [
-        0.52,
-        0.48
+        0.5,
+        0.5
       ],
       "rows": [
         [
-          "36.7% waited 11 minutes or more; long queues at lunch time",
-          "1. Staff scan a QR code, view the daily menu and order from their phone"
+          "36.7% waited 11 minutes or more",
+          "1. Order from a phone by scanning a QR code"
         ],
         [
-          "60.0% got a wrong order; the menu changes every morning",
-          "2. An admin module to update the daily menu and the status of each order"
+          "60.0% got a wrong order; the menu changes daily",
+          "2. An admin module for the menu and order status"
         ],
         [
-          "93.3% want a notification; staff now wait at the counter",
+          "93.3% want to be told when the order is ready",
           "3. An order-ready alert in the app and by email"
         ],
         [
-          "76.7% want to pre-order; meeting requests are kept on paper",
-          "4. Meeting-room catering pre-orders by a Chief Clerk"
+          "76.7% want to pre-order meeting catering",
+          "4. Meeting-room pre-orders by a Chief Clerk"
         ]
       ],
       "notes": "Objectives from Section 1.2, each traced back to the evidence."
+    },
+    {
+      "type": "compare",
+      "section": "Objectives",
+      "title": "Scope and expected results",
+      "left": {
+        "head": "In scope",
+        "icon": "fa-crosshairs",
+        "items": [
+          "Staff web app: QR scan, daily menu, counter order, order tracking",
+          "Chief Clerk login for meeting-room catering",
+          "Admin dashboard: menu, orders, status, admin accounts",
+          "Order-ready alerts in the app and by email",
+          "Cloud hosting with persistent storage"
+        ]
+      },
+      "right": {
+        "head": "Expected results",
+        "icon": "fa-flag-checkered",
+        "items": [
+          "Staff order from their phone instead of queuing",
+          "Typed orders replace misheard verbal orders",
+          "Staff are told when their order is ready",
+          "The daily menu is published digitally",
+          "Meeting catering is pre-ordered and tracked"
+        ]
+      },
+      "note": "Out of scope: online payment, POS or inventory integration, and other cafe outlets (Section 1.4).",
+      "notes": "Each expected result answers one problem in the problem statement (Section 1.2.1 of the report)."
     },
     {
       "type": "steps",
@@ -376,82 +445,46 @@
       "notes": "Objective 2. Use cases View Orders, Update Order Status, Mark Order Completed, Update Daily Menu and Manage Cafe Admins."
     },
     {
-      "type": "checks",
+      "type": "groups",
       "section": "Testing",
       "title": "Every use case passed its tests",
-      "items": [
+      "lead": "Each use case has a functional test (FT) and a regression test (RT), run through the user interface on the final build.",
+      "groups": [
         {
-          "uc": "UC1",
-          "name": "Scan QR Code",
-          "n": "01"
+          "icon": "fa-mobile-screen",
+          "head": "FAMA Staff",
+          "items": [
+            "Scan QR Code",
+            "View Daily Menu",
+            "Place Order",
+            "Review Order",
+            "Receive Order Notification"
+          ]
         },
         {
-          "uc": "UC2",
-          "name": "View Daily Menu",
-          "n": "02"
+          "icon": "fa-user-tie",
+          "head": "Chief Clerk",
+          "items": [
+            "Reserve Meeting Room Order"
+          ]
         },
         {
-          "uc": "UC3",
-          "name": "Place Order",
-          "n": "03"
-        },
-        {
-          "uc": "UC4",
-          "name": "Reserve Meeting Room Order",
-          "n": "04"
-        },
-        {
-          "uc": "UC5",
-          "name": "Receive Order Notification",
-          "n": "05"
-        },
-        {
-          "uc": "UC6",
-          "name": "Mark Order Completed",
-          "n": "06"
-        },
-        {
-          "uc": "UC7",
-          "name": "Update Daily Menu",
-          "n": "07"
-        },
-        {
-          "uc": "UC8",
-          "name": "View Orders",
-          "n": "08"
-        },
-        {
-          "uc": "UC9",
-          "name": "Update Order Status",
-          "n": "09"
-        },
-        {
-          "uc": "UC10",
-          "name": "Manage Cafe Admins",
-          "n": "10"
-        },
-        {
-          "uc": "UC11",
-          "name": "Register Admin",
-          "n": "11"
-        },
-        {
-          "uc": "UC12",
-          "name": "Forgot Password",
-          "n": "12"
-        },
-        {
-          "uc": "UC13",
-          "name": "Review Order",
-          "n": "13"
-        },
-        {
-          "uc": "UC14",
-          "name": "Login",
-          "n": "14"
+          "icon": "fa-user-shield",
+          "head": "Cafe Admin",
+          "items": [
+            "Login",
+            "Update Daily Menu",
+            "View Orders",
+            "Update Order Status",
+            "Mark Order Completed",
+            "Manage Cafe Admins",
+            "Register Admin",
+            "Forgot Password"
+          ]
         }
       ],
-      "note": "Each test was run through the user interface on the final build and compared with its expected output (Chapter 5 and Appendix C).",
+      "tag": "FT and RT passed",
+      "note": "Full test data, dates and screenshots are in Chapter 5 and Appendix C of the report.",
       "notes": "FT is the functional test and RT the regression test of each use case."
     },
     {
@@ -466,44 +499,44 @@
         "Status"
       ],
       "widths": [
-        0.22,
-        0.32,
-        0.16,
+        0.27,
+        0.21,
+        0.2,
         0.18,
-        0.12
+        0.14
       ],
-      "compact": true,
+      "compact": false,
       "rows": [
         [
           "1. QR ordering",
-          "Scan QR Code, View Daily Menu, Place Order, Review Order",
+          "UC1, UC2, UC3, UC13",
           "FR1 to FR3, FR13",
-          "FT and RT 01, 02, 03, 13",
+          "01, 02, 03, 13",
           "Achieved"
         ],
         [
           "2. Admin module",
-          "Update Daily Menu, View Orders, Update Order Status, Mark Completed, Manage Admins, Register, Forgot Password, Login",
+          "UC6 to UC12, UC14",
           "FR6 to FR12, NFR4",
-          "FT and RT 06 to 12, 14",
+          "06 to 12, 14",
           "Achieved"
         ],
         [
           "3. Order-ready alert",
-          "Receive Order Notification",
+          "UC5",
           "FR5, FR15",
-          "FT and RT 05",
+          "05",
           "Achieved"
         ],
         [
           "4. Meeting-room orders",
-          "Reserve Meeting Room Order",
+          "UC4",
           "FR4, FR14",
-          "FT and RT 04",
+          "04",
           "Achieved"
         ]
       ],
-      "note": "Objective 3 is achieved with an in-app alert, shown while the status page is open, and an email alert (Table 5.5 of the report).",
+      "note": "Tests are the FT and RT pair with that number. Objective 3 is met by an in-app alert and an email alert (Table 5.5).",
       "notes": "Each objective is traced to its use cases, requirements and test cases.",
       "lead": "The traceability matrix links each objective to its use cases, requirements and test cases."
     },

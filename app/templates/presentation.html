@@ -90,9 +90,19 @@
       {% elif s.type == 'numbered' %}
       <ol class="numbered {{ 'two-col' if s['items']|length > 3 else 'one-col' }}">
         {% for it in s['items'] %}
-        <li><span class="num">{{ loop.index }}</span><div><h3>{{ it.head }}</h3><p>{{ it.text }}</p></div></li>
+        <li><span class="num">{{ loop.index }}</span><div><h3>{{ it.head }}</h3>{% if it.text %}<p>{{ it.text }}</p>{% endif %}</div></li>
         {% endfor %}
       </ol>
+
+      {% elif s.type == 'groups' %}
+      <div class="cards cards-{{ s.groups|length }} groups">
+        {% for g in s.groups %}
+        <div class="card"><span class="card-icon"><i class="fa-solid {{ g.icon }}"></i></span><h3>{{ g.head }}</h3>
+          <ul class="group-list">{% for it in g['items'] %}<li>{{ it }}</li>{% endfor %}</ul>
+          <span class="group-tag"><i class="fa-solid fa-circle-check"></i>{{ s.tag }}</span>
+        </div>
+        {% endfor %}
+      </div>
 
       {% elif s.type == 'checks' %}
       <div class="checks">
@@ -108,8 +118,8 @@
 
       {% elif s.type == 'compare' %}
       <div class="compare">
-        <div class="col col-good"><h3><i class="fa-solid fa-circle-check"></i>{{ s.left.head }}</h3><ul>{% for i in s.left['items'] %}<li>{{ i }}</li>{% endfor %}</ul></div>
-        <div class="col col-limit"><h3><i class="fa-solid fa-triangle-exclamation"></i>{{ s.right.head }}</h3><ul>{% for i in s.right['items'] %}<li>{{ i }}</li>{% endfor %}</ul></div>
+        <div class="col col-good"><h3><i class="fa-solid {{ s.left.icon or 'fa-circle-check' }}"></i>{{ s.left.head }}</h3><ul>{% for i in s.left['items'] %}<li>{{ i }}</li>{% endfor %}</ul></div>
+        <div class="col col-limit"><h3><i class="fa-solid {{ s.right.icon or 'fa-triangle-exclamation' }}"></i>{{ s.right.head }}</h3><ul>{% for i in s.right['items'] %}<li>{{ i }}</li>{% endfor %}</ul></div>
       </div>
       {% endif %}
 
